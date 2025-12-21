@@ -24,23 +24,23 @@ export const pagesConfig: PageConfig[] = [
     id: 'landing',
     name: 'Landing Page',
     route: '/',
-    title: 'RetroArch - Policy-Driven Platform',
-    description: 'Welcome to RetroArch platform',
+    title: 'RetroArch PWA Configurator | TechByBrewski',
+    description: 'A powerful web-based configurator for managing your RetroArch server setups',
     components: [
       {
         type: 'header',
         id: 'main-header',
-        content: 'RetroArch Platform'
+        content: 'RetroArch PWA Configurator'
       },
       {
         type: 'content',
         id: 'main-content',
-        content: 'TypeScript-powered, policy-driven ingestion and management platform'
+        content: 'Configure and manage your RetroArch server with policy-driven validation and TypeScript-powered tooling'
       },
       {
         type: 'footer',
         id: 'main-footer',
-        content: '© 2024 RetroArch'
+        content: '© 2024 TechByBrewski'
       }
     ]
   }

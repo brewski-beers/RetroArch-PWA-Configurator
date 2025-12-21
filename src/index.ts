@@ -1,4 +1,4 @@
-// Main entry point for the RetroArch application
+// Main entry point for the RetroArch PWA Configurator
 // This file will be implemented with business logic in future iterations
 
 export function main(): void {

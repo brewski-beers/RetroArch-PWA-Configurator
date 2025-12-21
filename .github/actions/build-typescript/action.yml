@@ -1,0 +1,43 @@
+name: 'Build TypeScript'
+description: 'Builds TypeScript project with intelligent caching'
+
+inputs:
+  upload-artifacts:
+    description: 'Whether to upload build artifacts'
+    required: false
+    default: 'true'
+
+outputs:
+  cache-hit:
+    description: 'Whether build was restored from cache'
+    value: ${{ steps.cache-build.outputs.cache-hit }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Cache TypeScript build
+      id: cache-build
+      uses: actions/cache@v4
+      with:
+        path: dist
+        key: ${{ runner.os }}-build-${{ hashFiles('src/**', 'config/**', 'tsconfig.json', 'package.json') }}
+        restore-keys: |
+          ${{ runner.os }}-build-
+    
+    - name: Run Type Check
+      shell: bash
+      run: npm run type-check
+    
+    - name: Build TypeScript
+      if: steps.cache-build.outputs.cache-hit != 'true'
+      shell: bash
+      run: npm run build
+    
+    - name: Upload build artifacts
+      if: inputs.upload-artifacts == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist-${{ github.sha }}
+        path: dist/
+        retention-days: 1
+        compression-level: 6

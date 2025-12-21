@@ -1,0 +1,39 @@
+# Example: Nightly tests workflow
+# Uncomment and customize when needed
+
+# name: Nightly Tests
+# 
+# on:
+#   schedule:
+#     - cron: '0 2 * * *'  # Run at 2 AM UTC daily
+#   workflow_dispatch:  # Allow manual trigger
+# 
+# jobs:
+#   comprehensive-tests:
+#     name: Comprehensive Test Suite
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 30
+#     
+#     strategy:
+#       matrix:
+#         browser: [chromium, firefox, webkit]
+#     
+#     steps:
+#     - uses: actions/checkout@v4
+#     
+#     - name: Setup Environment
+#       uses: ./.github/actions/setup-node-env
+#     
+#     - name: Build TypeScript
+#       uses: ./.github/actions/build-typescript
+#     
+#     - name: Install Playwright (${{ matrix.browser }})
+#       uses: ./.github/actions/install-playwright
+#       with:
+#         browser: ${{ matrix.browser }}
+#     
+#     - name: Run All Tests
+#       uses: ./.github/actions/run-tests
+#       with:
+#         test-type: 'all'
+#         download-build: 'false'

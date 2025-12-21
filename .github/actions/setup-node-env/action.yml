@@ -1,0 +1,40 @@
+name: 'Setup Node Environment'
+description: 'Sets up Node.js with caching and dependency installation'
+
+inputs:
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '20.x'
+  install-dependencies:
+    description: 'Whether to install dependencies'
+    required: false
+    default: 'true'
+
+outputs:
+  cache-hit:
+    description: 'Whether node_modules was restored from cache'
+    value: ${{ steps.cache-deps.outputs.cache-hit }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+    
+    - name: Cache node_modules
+      id: cache-deps
+      uses: actions/cache@v4
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-deps-
+    
+    - name: Install dependencies
+      if: inputs.install-dependencies == 'true' && steps.cache-deps.outputs.cache-hit != 'true'
+      shell: bash
+      run: npm ci --prefer-offline --no-audit

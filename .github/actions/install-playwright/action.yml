@@ -1,0 +1,30 @@
+name: 'Install Playwright'
+description: 'Installs Playwright browsers with caching'
+
+inputs:
+  browser:
+    description: 'Browser to install (chromium, firefox, webkit, or all)'
+    required: false
+    default: 'chromium'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Cache Playwright Browsers
+      id: cache-playwright
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ inputs.browser }}-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-playwright-${{ inputs.browser }}-
+    
+    - name: Install Playwright Browsers
+      if: steps.cache-playwright.outputs.cache-hit != 'true'
+      shell: bash
+      run: npx playwright install ${{ inputs.browser }} --with-deps
+    
+    - name: Install Playwright System Dependencies
+      if: steps.cache-playwright.outputs.cache-hit == 'true'
+      shell: bash
+      run: npx playwright install-deps ${{ inputs.browser }}

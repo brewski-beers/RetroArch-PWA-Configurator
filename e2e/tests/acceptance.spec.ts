@@ -12,22 +12,22 @@ test.describe('Acceptance Test: Landing Page Happy Path', () => {
     await page.goto('/');
     
     // Verify page loads successfully
-    await expect(page).toHaveTitle('RetroArch - Policy-Driven Platform');
+    await expect(page).toHaveTitle('RetroArch PWA Configurator | TechByBrewski');
     
     // Verify main header is visible
     const header = page.locator('header h1');
     await expect(header).toBeVisible();
-    await expect(header).toHaveText('RetroArch Platform');
+    await expect(header).toHaveText('RetroArch PWA Configurator');
     
     // Verify main content is visible
     const content = page.locator('main p');
     await expect(content).toBeVisible();
-    await expect(content).toContainText('TypeScript-powered, policy-driven');
+    await expect(content).toContainText('Configure and manage your RetroArch server');
     
     // Verify footer is visible
     const footer = page.locator('footer');
     await expect(footer).toBeVisible();
-    await expect(footer).toContainText('RetroArch');
+    await expect(footer).toContainText('TechByBrewski');
   });
 
   test('landing page has proper styling', async ({ page }) => {

@@ -1,7 +1,7 @@
 {
-  "name": "retroarch",
+  "name": "@techbybrewski/retroarch-pwa-configurator",
   "version": "0.1.0",
-  "description": "TypeScript-powered, policy-driven ingestion and management platform for RetroArch setups",
+  "description": "A TypeScript-powered Progressive Web App for configuring and managing RetroArch server setups with policy-driven validation",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,15 +14,18 @@
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
     "type-check": "tsc --noEmit",
-    "ci:verify": "npm run policy:check && npm run type-check && npm run build && npm test && npm run test:e2e"
+    "ci:verify": "npm run type-check && npm run build && npm run policy:check && npm test && npm run test:e2e"
   },
   "keywords": [
     "retroarch",
+    "pwa",
+    "configurator",
     "typescript",
     "solid",
-    "testing"
+    "policy-as-code",
+    "techbybrewski"
   ],
-  "author": "",
+  "author": "TechByBrewski",
   "license": "MIT",
   "devDependencies": {
     "@playwright/test": "^1.40.0",
