@@ -19,6 +19,80 @@ This is **NOT** the RetroArch platform itself. This is a **web-based configurati
 - 🚀 Production-ready build pipeline with LeftShift testing
 - ⚡ Lightning-fast CI/CD with intelligent caching (1-2 min iterations)
 
+## 🎮 NEW: RetroArch Platform Features (In Development)
+
+The project now includes a **deterministic, auditable ROM ingestion pipeline** following the engineering plan:
+
+### Pipeline Architecture
+
+**Phase B & C Complete** ✅
+
+- **Core Interfaces**: TypeScript interfaces for all pipeline phases and plugins
+- **Pipeline Phases**:
+  1. **Classifier**: Accepts raw ROMs and classifies by extension ✅
+  2. **Validator**: Validates file integrity, hashes, and dependencies (placeholders)
+  3. **Normalizer**: Applies naming patterns and generates metadata (placeholders)
+  4. **Archiver**: Archives normalized ROMs to RetroArch-Archive (placeholders)
+  5. **Promoter**: Promotes ROMs to RetroArch-Sync runtime (placeholders)
+
+- **Dependency Injection**: PipelineOrchestrator coordinates all phases
+- **Plugin System**: Extensible architecture for custom plugins (interfaces defined)
+- **Test Factories**: Following TEST-001 (DRY principle) with ROMFileFactory, PlatformConfigFactory
+
+### Directory Structure
+
+```
+RetroArch-Archive/       # Permanent ROM storage
+  ├── BIOS/
+  ├── Manifests/
+  └── ROMs/<Platform>/
+
+RetroArch-Sync/          # RetroArch runtime environment
+  ├── content/
+  │   ├── roms/<Platform>/
+  │   ├── bios/
+  │   ├── saves/
+  │   └── states/
+  ├── playlists/
+  └── retroarch.cfg
+
+RetroArch-Workspace/     # Processing workspace
+  ├── Staging/
+  ├── Validation/
+  ├── Rejected/
+  └── Tools/
+```
+
+### Configuration
+
+Platform configuration in `config/platform.config.ts`:
+
+```typescript
+{
+  version: '1.0.0',
+  platforms: [
+    { id: 'nes', extensions: ['.nes'], requiresBIOS: false },
+    { id: 'psx', extensions: ['.cue', '.bin'], requiresBIOS: true },
+    // ... more platforms
+  ],
+  pipeline: {
+    enableClassifier: true,
+    enableValidator: true,
+    enableNormalizer: true,
+    enableArchiver: true,
+    enablePromoter: true,
+  }
+}
+```
+
+### Current Status
+
+- ✅ **64 unit tests passing** (Classifier fully tested)
+- ✅ **TypeScript strict mode** enforced
+- ✅ **SOLID principles** followed throughout
+- 🔄 **Phase D**: Full pipeline implementations in progress
+- 🔄 **Phase E**: Plugin system implementation pending
+
 ## 🌟 Key Features
 
 ### Policy-as-Code

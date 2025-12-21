@@ -81,8 +81,8 @@ describe('Classifier', () => {
 
       // Assert
       expect(result.data?.metadata).toBeDefined();
-      expect(result.data?.metadata?.classifiedAt).toBeDefined();
-      expect(result.data?.metadata?.platformName).toBe(
+      expect(result.data?.metadata?.['classifiedAt']).toBeDefined();
+      expect(result.data?.metadata?.['platformName']).toBe(
         'Nintendo Entertainment System'
       );
     });
@@ -129,7 +129,7 @@ describe('Classifier', () => {
       const result = classifier.moveToValidation(rom);
 
       // Assert
-      expect(result.metadata?.movedAt).toBeDefined();
+      expect(result.metadata?.['movedAt']).toBeDefined();
     });
   });
 });
