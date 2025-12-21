@@ -1,0 +1,39 @@
+# Example: Additional workflow using composite actions
+# Uncomment and customize when needed
+
+# name: Deploy to Production
+# 
+# on:
+#   push:
+#     branches: [ main ]
+#     tags:
+#       - 'v*'
+# 
+# jobs:
+#   build-and-deploy:
+#     name: Build & Deploy
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 15
+#     
+#     steps:
+#     - uses: actions/checkout@v4
+#     
+#     - name: Setup Environment
+#       uses: ./.github/actions/setup-node-env
+#       with:
+#         node-version: '20.x'
+#     
+#     - name: Build TypeScript
+#       uses: ./.github/actions/build-typescript
+#       with:
+#         upload-artifacts: 'false'
+#     
+#     - name: Run All Tests
+#       uses: ./.github/actions/run-tests
+#       with:
+#         test-type: 'all'
+#         download-build: 'false'
+#     
+#     # Add deployment steps here
+#     # - name: Deploy to Production
+#     #   run: npm run deploy

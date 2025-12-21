@@ -1,0 +1,15 @@
+# Build outputs
+dist/
+node_modules/
+coverage/
+
+# Test outputs
+playwright-report/
+test-results/
+
+# Generated files
+*.js
+!*.config.js
+
+# CLI execution blocks (v8 ignore)
+src/policy-checker.ts
