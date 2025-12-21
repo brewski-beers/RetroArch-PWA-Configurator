@@ -34,15 +34,20 @@
     "allowUnreachableCode": false,
     "exactOptionalPropertyTypes": true,
     
+    /* Node Types */
+    "types": ["node"],
+    
     /* Skip Lib Check */
     "skipLibCheck": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "config/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "tests"
+    "tests",
+    "e2e"
   ]
 }

@@ -1,0 +1,54 @@
+name: PR Verification
+
+on:
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [20.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run Policy Check
+      run: npm run policy:check
+      
+    - name: Run Type Check
+      run: npm run type-check
+      
+    - name: Build application
+      run: npm run build
+      
+    - name: Run Unit Tests
+      run: npm test
+      
+    - name: Install Playwright Browsers
+      run: npx playwright install chromium --with-deps
+      
+    - name: Run E2E Tests (LeftShift Testing)
+      run: npm run test:e2e
+      env:
+        CI: true
+      
+    - name: Upload Playwright Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30
