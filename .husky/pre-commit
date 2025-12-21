@@ -1,0 +1,15 @@
+# Fast-fail format and lint checks before commit
+echo "🎨 Checking code formatting with Prettier..."
+npm run format:check || {
+  echo "❌ Formatting check failed! Run 'npm run format' to fix."
+  exit 1
+}
+
+echo "🔍 Checking code quality with ESLint..."
+npm run lint || {
+  echo "❌ Linting failed! Run 'npm run lint:fix' to auto-fix issues."
+  exit 1
+}
+
+echo "✅ Pre-commit checks passed!"
+

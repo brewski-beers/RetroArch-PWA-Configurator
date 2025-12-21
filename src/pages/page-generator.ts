@@ -4,7 +4,11 @@
  * Follows SRP - single responsibility of generating pages from config
  */
 
-import { pagesConfig, type PageConfig, type PageComponent } from '../../config/pages.config.js';
+import {
+  pagesConfig,
+  type PageConfig,
+  type PageComponent,
+} from '../../config/pages.config.js';
 
 export class PageGenerator {
   /**
@@ -13,19 +17,19 @@ export class PageGenerator {
   private generateComponent(component: PageComponent): string {
     switch (component.type) {
       case 'header':
-        return `    <header id="${component.id}">
+        return `    <header id="${component.id}" data-testid="${component.testId}">
       <h1>${component.content}</h1>
     </header>`;
       case 'content':
-        return `    <main id="${component.id}">
+        return `    <main id="${component.id}" data-testid="${component.testId}">
       <p>${component.content}</p>
     </main>`;
       case 'footer':
-        return `    <footer id="${component.id}">
+        return `    <footer id="${component.id}" data-testid="${component.testId}">
       <p>${component.content}</p>
     </footer>`;
       default:
-        return `    <div id="${component.id}">${component.content}</div>`;
+        return `    <div id="${component.id}" data-testid="${component.testId}">${component.content}</div>`;
     }
   }
 
@@ -91,12 +95,12 @@ ${components}
    */
   generateAllPages(): Map<string, string> {
     const pages = new Map<string, string>();
-    
+
     for (const pageConfig of pagesConfig) {
       const html = this.generatePage(pageConfig);
       pages.set(pageConfig.route, html);
     }
-    
+
     return pages;
   }
 }

@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+coverage/
+playwright-report/
+test-results/
+
+# Generated files
+*.js
+*.d.ts
+
+# Logs
+*.log

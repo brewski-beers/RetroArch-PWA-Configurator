@@ -5,16 +5,20 @@ This directory contains reusable composite actions for the RetroArch PWA Configu
 ## Available Actions
 
 ### 1. `setup-node-env`
+
 Sets up Node.js environment with intelligent caching.
 
 **Inputs:**
+
 - `node-version` (optional): Node.js version, default: `20.x`
 - `install-dependencies` (optional): Whether to install deps, default: `true`
 
 **Outputs:**
+
 - `cache-hit`: Whether node_modules was restored from cache
 
 **Usage:**
+
 ```yaml
 - uses: ./.github/actions/setup-node-env
   with:
@@ -23,15 +27,19 @@ Sets up Node.js environment with intelligent caching.
 ```
 
 ### 2. `build-typescript`
+
 Builds TypeScript project with caching.
 
 **Inputs:**
+
 - `upload-artifacts` (optional): Upload build artifacts, default: `true`
 
 **Outputs:**
+
 - `cache-hit`: Whether build was restored from cache
 
 **Usage:**
+
 ```yaml
 - uses: ./.github/actions/build-typescript
   with:
@@ -39,12 +47,15 @@ Builds TypeScript project with caching.
 ```
 
 ### 3. `install-playwright`
+
 Installs Playwright browsers with caching.
 
 **Inputs:**
+
 - `browser` (optional): Browser to install (chromium/firefox/webkit/all), default: `chromium`
 
 **Usage:**
+
 ```yaml
 - uses: ./.github/actions/install-playwright
   with:
@@ -52,13 +63,16 @@ Installs Playwright browsers with caching.
 ```
 
 ### 4. `run-tests`
+
 Runs test suite with optional build artifacts.
 
 **Inputs:**
+
 - `test-type` (required): Type of tests (unit/e2e/policy/all)
 - `download-build` (optional): Download build artifacts, default: `false`
 
 **Usage:**
+
 ```yaml
 - uses: ./.github/actions/run-tests
   with:
@@ -86,7 +100,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       # Reuse composite actions
       - uses: ./.github/actions/setup-node-env
       - uses: ./.github/actions/build-typescript
@@ -121,14 +135,17 @@ act pull_request
 ## Troubleshooting
 
 **Issue**: Action not found
+
 - Ensure you're using relative path: `./.github/actions/action-name`
 - Check action directory structure matches
 
 **Issue**: Caching not working
+
 - Verify cache keys are unique and specific
 - Check cache size limits (10GB per repo)
 
 **Issue**: Composite action fails
+
 - Test individual steps in isolation
 - Check shell requirements (use `shell: bash`)
 - Verify all required inputs are provided
@@ -136,6 +153,7 @@ act pull_request
 ## Documentation
 
 See example workflows:
+
 - `.github/workflows/deploy.yml.example` - Deployment example
 - `.github/workflows/nightly.yml.example` - Scheduled tests example
 
