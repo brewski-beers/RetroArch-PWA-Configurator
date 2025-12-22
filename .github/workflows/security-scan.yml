@@ -152,7 +152,7 @@ jobs:
 
       - name: Verify lockfile consistency
         run: |
-          npm ci --dry-run
+          npm ci --dry-run --ignore-scripts
           echo "✓ Lockfile is consistent with package.json"
 
       - name: Check for outdated dependencies
