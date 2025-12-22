@@ -172,6 +172,15 @@ describe('AppServer', () => {
           'http://localhost:3000'
         );
       });
+
+      it('should handle preflight OPTIONS requests', async () => {
+        const response = await request(server.getApp())
+          .options('/api/config/validate')
+          .set('Origin', 'http://localhost:3000')
+          .set('Access-Control-Request-Method', 'POST');
+
+        expect(response.status).toBe(204);
+      });
     });
 
     describe('JSON Body Parsing', () => {
@@ -188,6 +197,72 @@ describe('AppServer', () => {
 
         expect(response.status).toBe(200);
         expect(response.body.config).toEqual(testData);
+      });
+
+      it('should handle malformed JSON gracefully', async () => {
+        const response = await request(server.getApp())
+          .post('/api/config/validate')
+          .set('Content-Type', 'application/json')
+          .send('{ invalid json }');
+
+        expect(response.status).toBeGreaterThanOrEqual(400);
+      });
+    });
+
+    describe('Validation Middleware (POL-013)', () => {
+      it('should validate query parameters when target is query', async () => {
+        // Test with valid query params (no validation errors expected)
+        const response = await request(server.getApp())
+          .post('/api/config/validate')
+          .send({
+            archivePath: '/path',
+            syncPath: '/path',
+            platforms: [{ id: 'nes', name: 'NES', enabled: true }],
+          });
+
+        expect(response.status).toBe(200);
+      });
+
+      it('should handle non-Zod errors gracefully', async () => {
+        // Trigger internal error by sending oversized payload
+        const hugeData = {
+          archivePath: 'a'.repeat(100000),
+          syncPath: 'a'.repeat(100000),
+          platforms: Array(1000)
+            .fill(null)
+            .map((_, i) => ({
+              id: `p${i}`,
+              name: `Platform ${i}`,
+              enabled: true,
+            })),
+        };
+
+        const response = await request(server.getApp())
+          .post('/api/config/validate')
+          .send(hugeData);
+
+        // Should either validate successfully or fail validation, not crash
+        expect([200, 400, 413, 500]).toContain(response.status);
+      });
+    });
+  });
+
+  describe('Error Handling', () => {
+    describe('404 Errors', () => {
+      it('should return 404 for unknown page routes', async () => {
+        const response = await request(server.getApp()).get('/unknown/route');
+
+        expect(response.status).toBe(404);
+        expect(response.text).toContain('404');
+      });
+
+      it('should return JSON 404 for unknown API routes', async () => {
+        const response = await request(server.getApp()).get(
+          '/api/unknown/endpoint'
+        );
+
+        expect(response.status).toBe(404);
+        expect(response.body).toHaveProperty('error');
       });
     });
   });

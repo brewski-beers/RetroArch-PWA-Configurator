@@ -24,7 +24,7 @@ export default defineConfig({
       thresholds: {
         lines: 70,
         functions: 80,
-        branches: 70, // Lowered from 75 to 70 (temporarily)
+        branches: 75, // Restored to 75% - comprehensive test coverage added
         statements: 70,
       },
       // Exclude CLI execution blocks from coverage
