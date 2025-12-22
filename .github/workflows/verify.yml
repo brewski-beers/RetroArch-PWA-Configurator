@@ -1,22 +1,7 @@
 name: PR Verification
 
 on:
-  # Regular PRs from contributors
   pull_request:
-    branches: [ main, master ]
-    paths:
-      - 'src/**'
-      - 'config/**'
-      - 'e2e/**'
-      - 'tests/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tsconfig.json'
-      - '*.config.ts'
-      - '.github/**'
-  # Dependabot PRs (use pull_request_target for proper permissions)
-  # Security: We explicitly checkout PR code (not base branch) in all jobs
-  pull_request_target:
     branches: [ main, master ]
     paths:
       - 'src/**'
@@ -43,9 +28,6 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
-      with:
-        # Security: For pull_request_target, explicitly checkout PR code (not base branch)
-        ref: ${{ github.event.pull_request.head.sha }}
     
     - name: Setup Environment
       uses: ./.github/actions/setup-node-env
@@ -65,9 +47,6 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
-      with:
-        # Security: For pull_request_target, explicitly checkout PR code (not base branch)
-        ref: ${{ github.event.pull_request.head.sha }}
     
     - name: Setup Environment
       uses: ./.github/actions/setup-node-env
@@ -86,9 +65,6 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
-      with:
-        # Security: For pull_request_target, explicitly checkout PR code (not base branch)
-        ref: ${{ github.event.pull_request.head.sha }}
     
     - name: Setup Environment
       uses: ./.github/actions/setup-node-env
@@ -107,9 +83,6 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
-      with:
-        # Security: For pull_request_target, explicitly checkout PR code (not base branch)
-        ref: ${{ github.event.pull_request.head.sha }}
     
     - name: Setup Environment
       uses: ./.github/actions/setup-node-env
@@ -131,9 +104,6 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
-      with:
-        # Security: For pull_request_target, explicitly checkout PR code (not base branch)
-        ref: ${{ github.event.pull_request.head.sha }}
     
     - name: Setup Environment
       uses: ./.github/actions/setup-node-env
