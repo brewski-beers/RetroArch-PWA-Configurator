@@ -41,6 +41,7 @@ export const e2ePolicyConfig: E2EPolicyConfig = {
       enabled: true,
       severity: 'critical',
       category: 'e2e',
+      enforcer: 'E2EPolicyValidator',
     },
     {
       id: 'E2E-002',
@@ -49,6 +50,7 @@ export const e2ePolicyConfig: E2EPolicyConfig = {
       enabled: true,
       severity: 'medium',
       category: 'e2e',
+      enforcer: 'E2EPolicyValidator',
     },
     {
       id: 'E2E-003',
@@ -57,6 +59,7 @@ export const e2ePolicyConfig: E2EPolicyConfig = {
       enabled: true,
       severity: 'high',
       category: 'e2e',
+      enforcer: 'E2EPolicyValidator',
     },
     {
       id: 'E2E-004',
@@ -65,6 +68,7 @@ export const e2ePolicyConfig: E2EPolicyConfig = {
       enabled: true,
       severity: 'medium',
       category: 'e2e',
+      enforcer: 'E2EPolicyValidator',
     },
     {
       id: 'E2E-005',
@@ -73,6 +77,7 @@ export const e2ePolicyConfig: E2EPolicyConfig = {
       enabled: true,
       severity: 'high',
       category: 'e2e',
+      enforcer: 'E2EPolicyValidator',
     },
     {
       id: 'E2E-006',
@@ -81,6 +86,7 @@ export const e2ePolicyConfig: E2EPolicyConfig = {
       enabled: true,
       severity: 'high',
       category: 'e2e',
+      enforcer: 'E2EPolicyValidator',
     },
   ],
   browsers: {

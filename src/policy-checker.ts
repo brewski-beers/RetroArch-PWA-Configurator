@@ -8,6 +8,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pagesConfig } from '../config/pages.config.js';
 import { PageGenerator } from './pages/page-generator.js';
+import {
+  CommentClassifier,
+  HousekeepingScanner,
+} from './housekeeping/index.js';
+import { policyConfig } from '../config/policy.config.js';
+import { MetaPolicyChecker } from './meta-policy-checker.js';
 
 export class PolicyChecker {
   /**
@@ -839,6 +845,95 @@ export class PolicyChecker {
   }
 
   /**
+   * POL-018: Code Housekeeping
+   * Checks for obsolete TODOs, generic TODOs without policy refs, and code debt
+   */
+  checkCodeHousekeeping(): { passed: boolean; message: string } {
+    try {
+      // Create classifier with all policies
+      const classifier = new CommentClassifier(policyConfig.rules);
+      const scanner = new HousekeepingScanner(classifier);
+
+      // Scan codebase
+      const report = scanner.scan();
+
+      const issues: string[] = [];
+
+      // Check for obsolete policy TODOs (critical)
+      if (report.obsoleteTodos.length > 0) {
+        issues.push(
+          `${report.obsoleteTodos.length} obsolete TODO(s) reference inactive policies`
+        );
+        for (const todo of report.obsoleteTodos.slice(0, 5)) {
+          issues.push(
+            `  ${todo.file}:${todo.line} - ${todo.content} (${todo.policyRef ?? 'unknown'} is inactive)`
+          );
+        }
+        if (report.obsoleteTodos.length > 5) {
+          issues.push(
+            `  ... and ${report.obsoleteTodos.length - 5} more obsolete TODOs`
+          );
+        }
+      }
+
+      // Check for FIXMEs (urgent issues - critical)
+      if (report.fixmes.length > 0) {
+        issues.push(
+          `${report.fixmes.length} FIXME(s) found (urgent issues requiring attention)`
+        );
+        for (const fixme of report.fixmes.slice(0, 3)) {
+          issues.push(`  ${fixme.file}:${fixme.line} - ${fixme.content}`);
+        }
+        if (report.fixmes.length > 3) {
+          issues.push(`  ... and ${report.fixmes.length - 3} more FIXMEs`);
+        }
+      }
+
+      // Info: Generic TODOs (not blocking, but should be policy-referenced)
+      const genericTodoCount = report.genericTodos.length;
+      const hackCount = report.hacks.length;
+      const disabledCodeCount = report.disabledCode.length;
+
+      const infoItems: string[] = [];
+      if (genericTodoCount > 0) {
+        infoItems.push(`${genericTodoCount} TODO(s) without policy references`);
+      }
+      if (hackCount > 0) {
+        infoItems.push(`${hackCount} HACK(s) (temporary workarounds)`);
+      }
+      if (disabledCodeCount > 0) {
+        infoItems.push(`${disabledCodeCount} commented-out code block(s)`);
+      }
+
+      // Critical issues block the build
+      const criticalIssues = report.obsoleteTodos.length + report.fixmes.length;
+
+      if (criticalIssues > 0) {
+        return {
+          passed: false,
+          message: `Code housekeeping issues detected:\n${issues.join('\n')}`,
+        };
+      }
+
+      // Info-only message (not blocking)
+      const infoMessage =
+        infoItems.length > 0
+          ? ` (${infoItems.join(', ')})`
+          : ' - code is clean';
+
+      return {
+        passed: true,
+        message: `Code housekeeping passed${infoMessage}`,
+      };
+    } catch (error) {
+      return {
+        passed: false,
+        message: `Error checking code housekeeping: ${error}`,
+      };
+    }
+  }
+
+  /**
    * Run all policy checks
    */
   async runAllChecks(): Promise<{
@@ -846,6 +941,16 @@ export class PolicyChecker {
     results: Array<{ rule: string; passed: boolean; message: string }>;
   }> {
     const results = [];
+
+    // POL-000: Policy Enforcement Integrity (MUST RUN FIRST)
+    // Meta-policy validates that all enabled policies have enforcement mechanisms
+    const metaChecker = new MetaPolicyChecker();
+    const policyIntegrityCheck = metaChecker.checkPolicyEnforcementIntegrity();
+    results.push({
+      rule: 'POL-000: Policy Enforcement Integrity',
+      passed: policyIntegrityCheck.passed,
+      message: policyIntegrityCheck.message,
+    });
 
     // Check POL-001: TypeScript Strict Mode
     const strictModeCheck = this.checkStrictMode();
@@ -964,6 +1069,13 @@ export class PolicyChecker {
     results.push({
       rule: 'POL-017: Supply Chain Security',
       ...supplyChainCheck,
+    });
+
+    // Check POL-018: Code Housekeeping
+    const housekeepingCheck = this.checkCodeHousekeeping();
+    results.push({
+      rule: 'POL-018: Code Housekeeping',
+      ...housekeepingCheck,
     });
 
     const allPassed = results.every((r: { passed: boolean }) => r.passed);

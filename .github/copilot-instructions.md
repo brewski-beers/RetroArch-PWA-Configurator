@@ -59,7 +59,7 @@ ALL behavior is defined in configuration files:
 
 ```
 base-policy.config.ts (DIP: Dependency Inversion Principle)
-├── policy.config.ts (Application Policies: POL-001 to POL-013)
+├── policy.config.ts (Application Policies: POL-001 to POL-019)
 ├── tests/config/test-policy.config.ts (Testing Policies: TEST-001 to TEST-006)
 └── e2e/config/e2e-policy.config.ts (E2E Policies: E2E-001 to E2E-006)
     └── unified-policy.config.ts (SRP: Policy Aggregator)
@@ -71,6 +71,7 @@ base-policy.config.ts (DIP: Dependency Inversion Principle)
 
 Enforced in `config/policy.config.ts`:
 
+- **POL-000**: Policy Enforcement Integrity (critical) - All enabled policies MUST have an enforcer specified and that enforcer MUST be r...
 - **POL-001**: TypeScript Strict Mode (critical) - All TypeScript files must use strict mode
 - **POL-002**: Test Coverage Thresholds (high) - Overall project coverage: 95% lines, 100% functions, 85% branches, 95% statement...
 - **POL-003**: SOLID Principles (high) - Code must follow SOLID design principles
@@ -84,6 +85,11 @@ Enforced in `config/policy.config.ts`:
 - **POL-011**: Dependency Security Audit (high) - All dependencies must pass npm audit with zero high/critical vulnerabilities
 - **POL-012**: CORS Configuration (medium) - CORS must be explicitly configured with allowlist, not wildcard (\*)
 - **POL-013**: Input Validation (high) - All user inputs must be validated and sanitized
+- **POL-014**: Automated Dependency Updates (high) - Dependabot configured for automated security updates
+- **POL-015**: Version Compatibility Policy (medium) - Use caret (^) for patch/minor updates, exact versions for critical dependencies
+- **POL-016**: License Compliance (medium) - All dependencies must use OSI-approved licenses compatible with MIT
+- **POL-017**: Supply Chain Security (critical) - Verify package-lock
+- **POL-018**: Code Housekeeping (medium) - Enforce clean code practices: remove obsolete TODOs, outdated comments, and unus...
 
 #### Testing Policies (TEST-\*)
 
@@ -113,7 +119,7 @@ Enforced in `e2e/config/e2e-policy.config.ts`:
 import { UnifiedPolicySystem } from './config/unified-policy.config.js';
 
 // Query all policies
-const allRules = UnifiedPolicySystem.getAllRules(); // 25 rules total
+const allRules = UnifiedPolicySystem.getAllRules(); // 31 rules total
 
 // Get critical rules only
 const critical = UnifiedPolicySystem.getCriticalRules();

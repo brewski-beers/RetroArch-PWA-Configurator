@@ -43,6 +43,7 @@ export const testPolicyConfig: TestPolicyConfig = {
       enabled: true,
       severity: 'high',
       category: 'testing',
+      enforcer: 'TestPolicyValidator',
     },
     {
       id: 'TEST-002',
@@ -51,6 +52,7 @@ export const testPolicyConfig: TestPolicyConfig = {
       enabled: true,
       severity: 'high',
       category: 'testing',
+      enforcer: 'TestPolicyValidator',
     },
     {
       id: 'TEST-003',
@@ -59,6 +61,7 @@ export const testPolicyConfig: TestPolicyConfig = {
       enabled: true,
       severity: 'critical',
       category: 'testing',
+      enforcer: 'TestPolicyValidator',
     },
     {
       id: 'TEST-004',
@@ -67,6 +70,7 @@ export const testPolicyConfig: TestPolicyConfig = {
       enabled: true,
       severity: 'medium',
       category: 'testing',
+      enforcer: 'TestPolicyValidator',
     },
     {
       id: 'TEST-005',
@@ -75,6 +79,7 @@ export const testPolicyConfig: TestPolicyConfig = {
       enabled: true,
       severity: 'high',
       category: 'testing',
+      enforcer: 'TestPolicyValidator',
     },
     {
       id: 'TEST-006',
@@ -83,6 +88,7 @@ export const testPolicyConfig: TestPolicyConfig = {
       enabled: true,
       severity: 'medium',
       category: 'testing',
+      enforcer: 'TestPolicyValidator',
     },
   ],
   coverage: {

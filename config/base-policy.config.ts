@@ -14,7 +14,8 @@ export interface BasePolicyRule {
   description: string;
   enabled: boolean;
   severity: 'critical' | 'high' | 'medium' | 'low';
-  category: 'application' | 'testing' | 'e2e';
+  category: 'application' | 'testing' | 'e2e' | 'meta';
+  enforcer?: string; // POL-000: Name of the class/module that enforces this policy
 }
 
 /**
@@ -23,7 +24,7 @@ export interface BasePolicyRule {
  */
 export interface BasePolicyConfig {
   version: string;
-  category: 'application' | 'testing' | 'e2e';
+  category: 'application' | 'testing' | 'e2e' | 'meta';
   rules: BasePolicyRule[];
 }
 
@@ -48,7 +49,7 @@ export function isValidPolicyRule(rule: unknown): rule is BasePolicyRule {
     typeof r.description === 'string' &&
     typeof r.enabled === 'boolean' &&
     ['critical', 'high', 'medium', 'low'].includes(r.severity) &&
-    ['application', 'testing', 'e2e'].includes(r.category)
+    ['application', 'testing', 'e2e', 'meta'].includes(r.category)
   );
 }
 

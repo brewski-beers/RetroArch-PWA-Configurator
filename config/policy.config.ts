@@ -8,7 +8,7 @@
 import type { BasePolicyConfig, BasePolicyRule } from './base-policy.config.js';
 
 export interface ApplicationPolicyRule extends BasePolicyRule {
-  category: 'application';
+  category: 'application' | 'meta';
 }
 
 /**
@@ -138,12 +138,26 @@ export const policyConfig: PolicyConfig = {
   category: 'application',
   rules: [
     {
+      id: 'POL-000',
+      name: 'Policy Enforcement Integrity',
+      description:
+        'All enabled policies MUST have an enforcer specified and that enforcer MUST be registered. ' +
+        'Prevents "policy as documentation" without actual code enforcement. Meta-policy that validates ' +
+        'the policy system itself. Enforcer registry includes: PolicyChecker, MetaPolicyChecker, ' +
+        'TestPolicyValidator, E2EPolicyValidator, TypeScriptCompiler, Vitest, ESLint, Prettier, Husky.',
+      enabled: true,
+      severity: 'critical',
+      category: 'meta',
+      enforcer: 'MetaPolicyChecker',
+    },
+    {
       id: 'POL-001',
       name: 'TypeScript Strict Mode',
       description: 'All TypeScript files must use strict mode',
       enabled: true,
       severity: 'critical',
       category: 'application',
+      enforcer: 'TypeScriptCompiler',
     },
     {
       id: 'POL-002',
@@ -154,6 +168,7 @@ export const policyConfig: PolicyConfig = {
       enabled: true,
       severity: 'high',
       category: 'application',
+      enforcer: 'Vitest',
     },
     {
       id: 'POL-003',
@@ -162,6 +177,7 @@ export const policyConfig: PolicyConfig = {
       enabled: true,
       severity: 'high',
       category: 'application',
+      enforcer: 'PolicyChecker',
     },
     {
       id: 'POL-004',
@@ -171,6 +187,7 @@ export const policyConfig: PolicyConfig = {
       enabled: true,
       severity: 'high',
       category: 'application',
+      enforcer: 'PolicyChecker',
     },
     {
       id: 'POL-005',
@@ -181,6 +198,7 @@ export const policyConfig: PolicyConfig = {
       enabled: true,
       severity: 'high',
       category: 'application',
+      enforcer: 'ESLint',
     },
     {
       id: 'POL-006',
@@ -191,6 +209,7 @@ export const policyConfig: PolicyConfig = {
       enabled: true,
       severity: 'high',
       category: 'application',
+      enforcer: 'Prettier',
     },
     {
       id: 'POL-007',
@@ -201,6 +220,7 @@ export const policyConfig: PolicyConfig = {
       enabled: true,
       severity: 'medium',
       category: 'application',
+      enforcer: 'Husky',
     },
     {
       id: 'POL-008',
@@ -211,6 +231,7 @@ export const policyConfig: PolicyConfig = {
       enabled: true,
       severity: 'medium',
       category: 'application',
+      enforcer: 'PolicyChecker',
     },
     {
       id: 'POL-009',
@@ -221,6 +242,7 @@ export const policyConfig: PolicyConfig = {
       enabled: true,
       severity: 'high',
       category: 'application',
+      enforcer: 'PolicyChecker',
     },
     {
       id: 'POL-010',
@@ -231,6 +253,7 @@ export const policyConfig: PolicyConfig = {
       enabled: true,
       severity: 'critical',
       category: 'application',
+      enforcer: 'PolicyChecker',
     },
     {
       id: 'POL-011',
@@ -241,6 +264,7 @@ export const policyConfig: PolicyConfig = {
       enabled: true,
       severity: 'high',
       category: 'application',
+      enforcer: 'PolicyChecker',
     },
     {
       id: 'POL-012',
@@ -251,6 +275,7 @@ export const policyConfig: PolicyConfig = {
       enabled: true,
       severity: 'medium',
       category: 'application',
+      enforcer: 'PolicyChecker',
     },
     {
       id: 'POL-013',
@@ -261,6 +286,7 @@ export const policyConfig: PolicyConfig = {
       enabled: true,
       severity: 'high',
       category: 'application',
+      enforcer: 'PolicyChecker',
     },
     {
       id: 'POL-014',
@@ -271,6 +297,7 @@ export const policyConfig: PolicyConfig = {
       enabled: true,
       severity: 'high',
       category: 'application',
+      enforcer: 'PolicyChecker',
     },
     {
       id: 'POL-015',
@@ -281,6 +308,7 @@ export const policyConfig: PolicyConfig = {
       enabled: true,
       severity: 'medium',
       category: 'application',
+      enforcer: 'PolicyChecker',
     },
     {
       id: 'POL-016',
@@ -291,6 +319,7 @@ export const policyConfig: PolicyConfig = {
       enabled: true,
       severity: 'medium',
       category: 'application',
+      enforcer: 'PolicyChecker',
     },
     {
       id: 'POL-017',
@@ -301,6 +330,20 @@ export const policyConfig: PolicyConfig = {
       enabled: true,
       severity: 'critical',
       category: 'application',
+      enforcer: 'PolicyChecker',
+    },
+    {
+      id: 'POL-018',
+      name: 'Code Housekeeping',
+      description:
+        'Enforce clean code practices: remove obsolete TODOs, outdated comments, and unused code. ' +
+        'All TODOs must reference active policy rules (POL-*, TEST-*, E2E-*) or have explicit justification. ' +
+        'FIXMEs indicate urgent issues. HACKs are temporary workarounds requiring documentation. ' +
+        'Commented-out code should be removed (use git history instead).',
+      enabled: true,
+      severity: 'medium',
+      category: 'application',
+      enforcer: 'CommentClassifier',
     },
   ],
   compliance: {
