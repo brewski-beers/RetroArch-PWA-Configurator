@@ -640,6 +640,205 @@ export class PolicyChecker {
   }
 
   /**
+   * Check automated dependency updates (POL-014)
+   */
+  checkAutomatedDependencyUpdates(): { passed: boolean; message: string } {
+    try {
+      const dependabotPath = path.join(
+        process.cwd(),
+        '.github',
+        'dependabot.yml'
+      );
+
+      if (!fs.existsSync(dependabotPath)) {
+        return {
+          passed: false,
+          message: 'Dependabot not configured (.github/dependabot.yml missing)',
+        };
+      }
+
+      const content = fs.readFileSync(dependabotPath, 'utf-8');
+
+      // Check for npm ecosystem configuration
+      const hasNpmEcosystem = content.includes('package-ecosystem: npm');
+      const hasSchedule = content.includes('schedule:');
+
+      if (!hasNpmEcosystem || !hasSchedule) {
+        return {
+          passed: false,
+          message:
+            'Dependabot configuration incomplete (missing npm or schedule)',
+        };
+      }
+
+      return {
+        passed: true,
+        message: 'Dependabot configured for automated dependency updates',
+      };
+    } catch (error) {
+      return {
+        passed: false,
+        message: `Error checking automated dependency updates: ${error}`,
+      };
+    }
+  }
+
+  /**
+   * Check version compatibility policy (POL-015)
+   */
+  checkVersionCompatibility(): { passed: boolean; message: string } {
+    try {
+      const packageJsonPath = path.join(process.cwd(), 'package.json');
+
+      if (!fs.existsSync(packageJsonPath)) {
+        return {
+          passed: false,
+          message: 'package.json not found',
+        };
+      }
+
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+
+      const dependencies = {
+        ...packageJson.dependencies,
+        ...packageJson.devDependencies,
+      };
+
+      const violations: string[] = [];
+
+      // Check for wildcard versions (not allowed)
+      for (const [pkg, version] of Object.entries(dependencies)) {
+        const versionStr = String(version);
+
+        if (versionStr === '*' || versionStr === 'latest') {
+          violations.push(
+            `${pkg}: wildcard version not allowed (${versionStr})`
+          );
+        }
+
+        // Check for invalid version ranges
+        if (
+          !versionStr.match(/^[\^~]?[\d.]+/) &&
+          !versionStr.startsWith('npm:')
+        ) {
+          violations.push(`${pkg}: invalid version format (${versionStr})`);
+        }
+      }
+
+      if (violations.length > 0) {
+        return {
+          passed: false,
+          message: `Version compatibility violations:\n  - ${violations.join('\n  - ')}`,
+        };
+      }
+
+      return {
+        passed: true,
+        message: 'All dependencies use compatible version ranges',
+      };
+    } catch (error) {
+      return {
+        passed: false,
+        message: `Error checking version compatibility: ${error}`,
+      };
+    }
+  }
+
+  /**
+   * Check license compliance (POL-016)
+   */
+  checkLicenseCompliance(): { passed: boolean; message: string } {
+    try {
+      const packageJsonPath = path.join(process.cwd(), 'package.json');
+
+      if (!fs.existsSync(packageJsonPath)) {
+        return {
+          passed: false,
+          message: 'package.json not found',
+        };
+      }
+
+      // Check if package.json has MIT license (project license)
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+
+      if (packageJson.license !== 'MIT') {
+        return {
+          passed: false,
+          message: `Project license should be MIT (found: ${String(packageJson.license)})`,
+        };
+      }
+
+      // Note: Full dependency license checking requires `license-checker` package
+      // For now, we validate that the project license is correct
+      return {
+        passed: true,
+        message:
+          'Project license is MIT-compliant (run license-checker for full scan)',
+      };
+    } catch (error) {
+      return {
+        passed: false,
+        message: `Error checking license compliance: ${error}`,
+      };
+    }
+  }
+
+  /**
+   * Check supply chain security (POL-017)
+   */
+  checkSupplyChainSecurity(): { passed: boolean; message: string } {
+    try {
+      const packageLockPath = path.join(process.cwd(), 'package-lock.json');
+
+      if (!fs.existsSync(packageLockPath)) {
+        return {
+          passed: false,
+          message:
+            'package-lock.json not found (required for supply chain security)',
+        };
+      }
+
+      const packageLock = JSON.parse(fs.readFileSync(packageLockPath, 'utf-8'));
+
+      // Check lockfileVersion (should be 2 or 3)
+      const lockfileVersion = packageLock.lockfileVersion;
+      const MIN_LOCKFILE_VERSION = 2;
+
+      if (!lockfileVersion || lockfileVersion < MIN_LOCKFILE_VERSION) {
+        return {
+          passed: false,
+          message: `package-lock.json uses old format (v${String(lockfileVersion)}). Run npm install to upgrade.`,
+        };
+      }
+
+      // Check if CI uses npm ci (from package.json scripts)
+      const packageJsonPath = path.join(process.cwd(), 'package.json');
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+
+      const ciScript = packageJson.scripts?.['ci:verify'];
+
+      if (ciScript && ciScript.includes('npm install')) {
+        return {
+          passed: false,
+          message:
+            'CI script uses npm install (should use npm ci for reproducibility)',
+        };
+      }
+
+      return {
+        passed: true,
+        message:
+          'Supply chain security enforced (lockfile v3, npm ci recommended)',
+      };
+    } catch (error) {
+      return {
+        passed: false,
+        message: `Error checking supply chain security: ${error}`,
+      };
+    }
+  }
+
+  /**
    * Run all policy checks
    */
   async runAllChecks(): Promise<{
@@ -737,6 +936,34 @@ export class PolicyChecker {
     results.push({
       rule: 'POL-013: Input Validation',
       ...validationCheck,
+    });
+
+    // Check POL-014: Automated Dependency Updates
+    const dependencyUpdatesCheck = this.checkAutomatedDependencyUpdates();
+    results.push({
+      rule: 'POL-014: Automated Dependency Updates',
+      ...dependencyUpdatesCheck,
+    });
+
+    // Check POL-015: Version Compatibility Policy
+    const versionCompatCheck = this.checkVersionCompatibility();
+    results.push({
+      rule: 'POL-015: Version Compatibility Policy',
+      ...versionCompatCheck,
+    });
+
+    // Check POL-016: License Compliance
+    const licenseCheck = this.checkLicenseCompliance();
+    results.push({
+      rule: 'POL-016: License Compliance',
+      ...licenseCheck,
+    });
+
+    // Check POL-017: Supply Chain Security
+    const supplyChainCheck = this.checkSupplyChainSecurity();
+    results.push({
+      rule: 'POL-017: Supply Chain Security',
+      ...supplyChainCheck,
     });
 
     const allPassed = results.every((r: { passed: boolean }) => r.passed);

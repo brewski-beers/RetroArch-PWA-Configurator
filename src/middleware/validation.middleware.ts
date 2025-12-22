@@ -23,20 +23,18 @@ interface ValidationErrorResponse {
  * @param schema - Zod schema to validate against
  * @param target - Which part of request to validate ('body' | 'query' | 'params')
  */
-export function validateRequest(
-  schema: ZodSchema,
+export function validateRequest<T = unknown>(
+  schema: ZodSchema<T>,
   target: 'body' | 'query' | 'params' = 'body'
 ) {
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
       // Validate the target part of the request
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-      const data: unknown = (req as any)[target];
-      const validated = schema.parse(data);
+      const data: unknown = req[target];
+      const validated: T = schema.parse(data);
 
       // Replace request data with validated data (type-safe)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-      (req as any)[target] = validated;
+      req[target] = validated;
 
       next();
     } catch (error) {

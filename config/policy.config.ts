@@ -262,6 +262,46 @@ export const policyConfig: PolicyConfig = {
       severity: 'high',
       category: 'application',
     },
+    {
+      id: 'POL-014',
+      name: 'Automated Dependency Updates',
+      description:
+        'Dependabot configured for automated security updates. Auto-merge minor/patch updates. ' +
+        'Weekly dependency review. Renovate or Dependabot PR auto-labeling enabled.',
+      enabled: true,
+      severity: 'high',
+      category: 'application',
+    },
+    {
+      id: 'POL-015',
+      name: 'Version Compatibility Policy',
+      description:
+        'Use caret (^) for patch/minor updates, exact versions for critical dependencies. ' +
+        'Major version updates require manual review. Lock production dependencies strictly.',
+      enabled: true,
+      severity: 'medium',
+      category: 'application',
+    },
+    {
+      id: 'POL-016',
+      name: 'License Compliance',
+      description:
+        'All dependencies must use OSI-approved licenses compatible with MIT. ' +
+        'Forbidden: GPL, AGPL (copyleft). Allowed: MIT, Apache-2.0, BSD, ISC. Check with license-checker.',
+      enabled: true,
+      severity: 'medium',
+      category: 'application',
+    },
+    {
+      id: 'POL-017',
+      name: 'Supply Chain Security',
+      description:
+        'Verify package-lock.json integrity on every install. Use npm ci in CI/CD (not npm install). ' +
+        'Enable npm audit signatures. Verify package provenance when available.',
+      enabled: true,
+      severity: 'critical',
+      category: 'application',
+    },
   ],
   compliance: {
     requireAuth: false, // Not yet implemented

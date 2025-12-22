@@ -653,7 +653,7 @@ describe('PolicyChecker', () => {
     it('should run all policy checks', async () => {
       const { results } = await checker.runAllChecks();
 
-      expect(results.length).toBe(13); // POL-001 through POL-013
+      expect(results.length).toBe(17); // POL-001 through POL-017
       expect(results.some((r) => r.rule.includes('POL-001'))).toBe(true);
       expect(results.some((r) => r.rule.includes('POL-002'))).toBe(true);
       expect(results.some((r) => r.rule.includes('POL-003'))).toBe(true);
@@ -667,6 +667,10 @@ describe('PolicyChecker', () => {
       expect(results.some((r) => r.rule.includes('POL-011'))).toBe(true);
       expect(results.some((r) => r.rule.includes('POL-012'))).toBe(true);
       expect(results.some((r) => r.rule.includes('POL-013'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('POL-014'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('POL-015'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('POL-016'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('POL-017'))).toBe(true);
     });
 
     it('should return overall passed status', async () => {
@@ -797,6 +801,41 @@ describe('PolicyChecker', () => {
       const validationCheck = results.find((r) => r.rule.includes('POL-013'));
       expect(validationCheck).toBeDefined();
       expect(validationCheck?.passed).toBe(true);
+    });
+
+    it('should include Automated Dependency Updates check', async () => {
+      const { results } = await checker.runAllChecks();
+
+      const dependencyUpdatesCheck = results.find((r) =>
+        r.rule.includes('POL-014')
+      );
+      expect(dependencyUpdatesCheck).toBeDefined();
+    });
+
+    it('should include Version Compatibility Policy check', async () => {
+      const { results } = await checker.runAllChecks();
+
+      const versionCompatCheck = results.find((r) =>
+        r.rule.includes('POL-015')
+      );
+      expect(versionCompatCheck).toBeDefined();
+      expect(versionCompatCheck?.passed).toBe(true);
+    });
+
+    it('should include License Compliance check', async () => {
+      const { results } = await checker.runAllChecks();
+
+      const licenseCheck = results.find((r) => r.rule.includes('POL-016'));
+      expect(licenseCheck).toBeDefined();
+      expect(licenseCheck?.passed).toBe(true);
+    });
+
+    it('should include Supply Chain Security check', async () => {
+      const { results } = await checker.runAllChecks();
+
+      const supplyChainCheck = results.find((r) => r.rule.includes('POL-017'));
+      expect(supplyChainCheck).toBeDefined();
+      expect(supplyChainCheck?.passed).toBe(true);
     });
   });
 });
