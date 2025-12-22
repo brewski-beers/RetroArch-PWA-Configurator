@@ -26,7 +26,16 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/security-scan.yml'
+  # Regular PRs from contributors
   pull_request:
+    branches:
+      - main
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+  # Dependabot PRs (use pull_request_target for proper permissions)
+  # Security: We explicitly checkout PR code (not base branch) in all jobs
+  pull_request_target:
     branches:
       - main
     paths:
@@ -52,10 +61,13 @@ jobs:
   dependency-review:
     name: Dependency Review (GitHub Native)
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # Security: For pull_request_target, explicitly checkout PR code (not base branch)
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Dependency Review
         uses: actions/dependency-review-action@v4
@@ -70,6 +82,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # Security: For pull_request_target, explicitly checkout PR code (not base branch)
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -110,6 +125,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # Security: For pull_request_target, explicitly checkout PR code (not base branch)
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Verify package-lock.json integrity
         run: |
