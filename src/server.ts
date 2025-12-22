@@ -145,7 +145,6 @@ export class AppServer {
         err: Error,
         _req: Request,
         res: Response,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _next: express.NextFunction
       ) => {
         // eslint-disable-next-line no-console

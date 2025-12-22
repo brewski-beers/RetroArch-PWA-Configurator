@@ -123,7 +123,9 @@ jobs:
 
           # Verify lockfile version (should be v2 or v3)
           LOCKFILE_VERSION=$(jq -r '.lockfileVersion' package-lock.json)
-          if [ "$LOCKFILE_VERSION" -lt 2 ]; then
+          
+          # Use arithmetic expansion for safer numeric comparison
+          if (( LOCKFILE_VERSION < 2 )); then
             echo "❌ package-lock.json uses old format (v$LOCKFILE_VERSION)" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi

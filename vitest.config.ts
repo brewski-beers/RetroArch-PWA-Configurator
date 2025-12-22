@@ -24,7 +24,7 @@ export default defineConfig({
       thresholds: {
         lines: 70,
         functions: 80,
-        branches: 75, // Restored to 75% - comprehensive test coverage added
+        branches: 75, // TODO(POL-002): Restore to ≥85% after Phase D (see COVERAGE_STRATEGY.md)
         statements: 70,
       },
       // Exclude CLI execution blocks from coverage
