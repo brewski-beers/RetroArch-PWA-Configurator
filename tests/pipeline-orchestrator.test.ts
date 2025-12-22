@@ -127,7 +127,8 @@ describe('PipelineOrchestrator', () => {
       // Assert
       expect(result.success).toBe(true);
       expect(result.rom?.hash).toBeDefined();
-      expect(result.rom?.hash).toBe('placeholder-hash');
+      // Real SHA-256 hash should be a 64-character hex string
+      expect(result.rom?.hash).toMatch(/^[a-f0-9]{64}$/);
     });
   });
 });

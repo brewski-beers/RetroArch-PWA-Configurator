@@ -13,12 +13,52 @@ import type {
   ROMFile,
 } from '../interfaces/pipeline.interface.js';
 import type { PlatformConfig } from '../interfaces/platform-config.interface.js';
+import type { UserConfig } from '../interfaces/user-config.interface.js';
+import { join } from 'node:path';
 
 export interface PipelineResult {
   success: boolean;
   rom?: ROMFile;
   errors: string[];
   phase?: string;
+}
+
+/**
+ * Converts UserConfig to PlatformConfig directory structure
+ * Bridges user configuration to pipeline requirements
+ */
+function userConfigToDirectoryStructure(
+  config: UserConfig
+): PlatformConfig['directories'] {
+  return {
+    archive: {
+      root: config.archive.root.path,
+      bios: config.archive.bios.path,
+      manifests: config.archive.manifests.path,
+      roms: config.archive.roms.path,
+    },
+    sync: {
+      root: config.sync.root.path,
+      content: {
+        roms: join(config.sync.content.path, 'roms'),
+        bios: join(config.sync.content.path, 'bios'),
+        saves: join(config.sync.content.path, 'saves'),
+        states: join(config.sync.content.path, 'states'),
+      },
+      playlists: config.sync.playlists.path,
+      config: join(config.sync.root.path, 'config'),
+    },
+    thumbnails: {
+      root: config.sync.thumbnails.path,
+    },
+    workspace: {
+      root: config.workspace.processing.path,
+      staging: join(config.workspace.processing.path, 'staging'),
+      validation: join(config.workspace.processing.path, 'validation'),
+      rejected: join(config.workspace.processing.path, 'rejected'),
+      tools: join(config.workspace.processing.path, 'tools'),
+    },
+  };
 }
 
 /**
@@ -32,6 +72,15 @@ export class PipelineOrchestrator {
   private readonly archiver: IArchiver;
   private readonly promoter: IPromoter;
 
+  /**
+   * Creates a new PipelineOrchestrator
+   * @param config - Platform configuration with directories
+   * @param classifier - Classifier implementation
+   * @param validator - Validator implementation
+   * @param normalizer - Normalizer implementation
+   * @param archiver - Archiver implementation
+   * @param promoter - Promoter implementation
+   */
   constructor(
     config: PlatformConfig,
     classifier: IClassifier,
@@ -46,6 +95,54 @@ export class PipelineOrchestrator {
     this.normalizer = normalizer;
     this.archiver = archiver;
     this.promoter = promoter;
+  }
+
+  /**
+   * Creates a new PipelineOrchestrator from UserConfig
+   * This is the recommended way to create an orchestrator
+   * @param userConfig - User configuration
+   * @param classifier - Classifier implementation
+   * @param validator - Validator implementation
+   * @param normalizer - Normalizer implementation
+   * @param archiver - Archiver implementation
+   * @param promoter - Promoter implementation
+   */
+  static fromUserConfig(
+    userConfig: UserConfig,
+    classifier: IClassifier,
+    validator: IValidator,
+    normalizer: INormalizer,
+    archiver: IArchiver,
+    promoter: IPromoter
+  ): PipelineOrchestrator {
+    // Convert UserConfig to PlatformConfig
+    const platformConfig: PlatformConfig = {
+      version: userConfig.version,
+      directories: userConfigToDirectoryStructure(userConfig),
+      pipeline: {
+        enableClassifier: true,
+        enableValidator: true,
+        enableNormalizer: true,
+        enableArchiver: true,
+        enablePromoter: true,
+        enableCHDConversion: false,
+        enableThumbnails: false,
+        enableMetadata: false,
+      },
+      platforms: [], // Will be populated from platform definitions
+      plugins: {
+        enabled: false,
+      },
+    };
+
+    return new PipelineOrchestrator(
+      platformConfig,
+      classifier,
+      validator,
+      normalizer,
+      archiver,
+      promoter
+    );
   }
 
   /**

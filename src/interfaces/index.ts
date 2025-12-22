@@ -7,3 +7,4 @@
 export * from './platform-config.interface.js';
 export * from './pipeline.interface.js';
 export * from './plugin.interface.js';
+export * from './user-config.interface.js';

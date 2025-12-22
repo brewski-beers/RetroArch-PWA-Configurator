@@ -45,6 +45,7 @@
     "config/**/*",
     "tests/**/*",
     "e2e/**/*",
+    "examples/**/*",
     "*.config.ts"
   ],
   "exclude": ["node_modules", "dist"]

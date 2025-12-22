@@ -41,3 +41,17 @@ playwright/.cache/
 tmp/
 temp/
 *.tmp
+
+# User Configuration (local only - not committed)
+user-config.json
+
+# Generated Directories (user data - not committed)
+# These are created by the ROM ingestion pipeline
+RetroArch-Archive/
+RetroArch-Sync/
+
+# Custom Directory Names (from user config)
+# Users may name their directories differently
+Archive/
+Sync/
+Workspace/
