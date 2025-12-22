@@ -30,6 +30,8 @@
     "demo:snes": "tsx examples/ingest-rom.ts examples/roms/demo-game.sfc",
     "demo:genesis": "tsx examples/ingest-rom.ts examples/roms/demo-game.md",
     "demo:all": "npm run demo:nes && npm run demo:snes && npm run demo:genesis",
+    "mcp:build": "tsc --project mcp-server/tsconfig.json",
+    "mcp:start": "node dist/mcp-server/policy-server.js",
     "ci:verify": "npm run format:check && npm run lint && npm run type-check && npm run build && npm run policy:check && npm run test:coverage && npm run test:e2e",
     "prepare": "husky"
   },
@@ -67,6 +69,7 @@
     "vitest": "^1.0.0"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.1",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "zod": "^4.2.1"
