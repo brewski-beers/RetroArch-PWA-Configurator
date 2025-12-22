@@ -1,0 +1,50 @@
+{
+  "models": [
+    {
+      "title": "Claude 3.5 Sonnet",
+      "provider": "anthropic",
+      "model": "claude-3-5-sonnet-20241022",
+      "apiKey": ""
+    }
+  ],
+  "tabAutocompleteModel": {
+    "title": "Disabled",
+    "provider": "free-trial",
+    "model": "AUTODETECT"
+  },
+  "allowAnonymousTelemetry": false,
+  "mcpServers": {
+    "retroarch-policy-server": {
+      "command": "node",
+      "args": ["dist/mcp-server/policy-server.js"],
+      "cwd": "${workspaceFolder}"
+    }
+  },
+  "systemMessage": "You are an expert TypeScript engineer working on RetroArch PWA Configurator. Use the MCP policy server to query rules dynamically. Always reference policy IDs (POL-*, TEST-*, E2E-*) in decisions.",
+  "contextProviders": [
+    {
+      "name": "code",
+      "params": {}
+    },
+    {
+      "name": "diff",
+      "params": {}
+    },
+    {
+      "name": "terminal",
+      "params": {}
+    },
+    {
+      "name": "problems",
+      "params": {}
+    },
+    {
+      "name": "folder",
+      "params": {}
+    },
+    {
+      "name": "codebase",
+      "params": {}
+    }
+  ]
+}
