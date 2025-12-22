@@ -59,7 +59,7 @@ ALL behavior is defined in configuration files:
 
 ```
 base-policy.config.ts (DIP: Dependency Inversion Principle)
-├── policy.config.ts (Application Policies: POL-001 to POL-004)
+├── policy.config.ts (Application Policies: POL-001 to POL-013)
 ├── tests/config/test-policy.config.ts (Testing Policies: TEST-001 to TEST-006)
 └── e2e/config/e2e-policy.config.ts (E2E Policies: E2E-001 to E2E-006)
     └── unified-policy.config.ts (SRP: Policy Aggregator)
@@ -71,32 +71,41 @@ base-policy.config.ts (DIP: Dependency Inversion Principle)
 
 Enforced in `config/policy.config.ts`:
 
-- **POL-001**: TypeScript Strict Mode (critical) - Zero type errors
-- **POL-002**: Test Coverage Thresholds (high) - 95%+ lines, 100% functions
-- **POL-003**: SOLID Principles Compliance (high) - SRP, OCP, LSP, ISP, DIP
-- **POL-004**: Test ID Attributes (high) - All UI components have `data-testid`
+- **POL-001**: TypeScript Strict Mode (critical) - All TypeScript files must use strict mode
+- **POL-002**: Test Coverage Thresholds (high) - Overall project coverage: 95% lines, 100% functions, 85% branches, 95% statement...
+- **POL-003**: SOLID Principles (high) - Code must follow SOLID design principles
+- **POL-004**: Test ID Attributes (high) - All UI components must have data-testid attributes for Vitest and Playwright tes...
+- **POL-005**: ESLint Code Quality (high) - All code must pass ESLint with zero errors
+- **POL-006**: Prettier Code Formatting (high) - All code must be formatted with Prettier
+- **POL-007**: Pre-Commit Hooks (medium) - All commits must pass format and lint checks via Git hooks (husky)
+- **POL-008**: Git Workflow (medium) - Conventional commit messages, branch naming conventions, and PR requirements enf...
+- **POL-009**: TDD Approach (high) - Test-Driven Development required for all new features
+- **POL-010**: Secrets Management (critical) - No hardcoded secrets, API keys, or credentials in code
+- **POL-011**: Dependency Security Audit (high) - All dependencies must pass npm audit with zero high/critical vulnerabilities
+- **POL-012**: CORS Configuration (medium) - CORS must be explicitly configured with allowlist, not wildcard (\*)
+- **POL-013**: Input Validation (high) - All user inputs must be validated and sanitized
 
 #### Testing Policies (TEST-\*)
 
 Enforced in `tests/config/test-policy.config.ts`:
 
-- **TEST-001**: Factory Usage (DRY Principle) (high) - Use test factories for fixtures
-- **TEST-002**: Single Responsibility (SRP) (high) - One test, one concept
-- **TEST-003**: Type Safety (critical) - No `any` types in tests
-- **TEST-004**: Arrange-Act-Assert Pattern (medium) - Clear test structure
-- **TEST-005**: No Magic Values (medium) - Use constants and factories
-- **TEST-006**: Descriptive Test Names (low) - Clear "should" statements
+- **TEST-001**: Test Factory Usage (high) - All tests must use factories for test data creation (DRY principle)
+- **TEST-002**: Single Responsibility (high) - Each test must test one specific behavior (SRP)
+- **TEST-003**: Type Safety (critical) - All test data must be properly typed (no any types)
+- **TEST-004**: Arrange-Act-Assert (medium) - Tests must follow AAA pattern for clarity
+- **TEST-005**: No Magic Values (high) - Use factory methods instead of inline test data
+- **TEST-006**: Descriptive Test Names (medium) - Test names must clearly describe the behavior being tested
 
 #### E2E Policies (E2E-\*)
 
 Enforced in `e2e/config/e2e-policy.config.ts`:
 
-- **E2E-001**: Use Test IDs (critical) - Always use `getByTestId()`, never CSS selectors
-- **E2E-002**: Page Object Pattern (high) - Encapsulate page interactions
-- **E2E-003**: Auto-Generated Tests (high) - Generate from config
-- **E2E-004**: Semantic HTML (medium) - Valid HTML5 structure
-- **E2E-005**: Accessibility Testing (medium) - ARIA attributes, keyboard nav
-- **E2E-006**: Config-Driven Tests (low) - Derive test cases from config
+- **E2E-001**: Use Test IDs (critical) - Prefer data-testid for component testing
+- **E2E-002**: Page Object Pattern (medium) - Use page objects for complex interactions (SRP)
+- **E2E-003**: Auto-Generated Tests (high) - Generate smoke tests from configuration (DRY)
+- **E2E-004**: Semantic HTML Validation (medium) - Verify proper HTML5 semantic structure
+- **E2E-005**: Accessibility Compliance (high) - Test for basic accessibility requirements
+- **E2E-006**: Configuration-Driven (high) - E2E tests must derive from application configuration
 
 #### Using the Unified Policy System
 
@@ -104,7 +113,7 @@ Enforced in `e2e/config/e2e-policy.config.ts`:
 import { UnifiedPolicySystem } from './config/unified-policy.config.js';
 
 // Query all policies
-const allRules = UnifiedPolicySystem.getAllRules(); // 16 rules total
+const allRules = UnifiedPolicySystem.getAllRules(); // 25 rules total
 
 // Get critical rules only
 const critical = UnifiedPolicySystem.getCriticalRules();
@@ -130,7 +139,7 @@ if (!validation.isValid) {
 
 ```typescript
 {
-  id: 'POL-005',  // POL-* | TEST-* | E2E-*
+  id: 'POL-010',  // POL-* | TEST-* | E2E-*
   name: 'Clear Rule Name',
   description: 'Detailed explanation of what this rule enforces',
   enabled: true,
@@ -141,7 +150,9 @@ if (!validation.isValid) {
 
 3. **Implement enforcement** in the appropriate checker/validator
 
-4. **Verify with audit**: `npm run policy:check` or review `POLICY_AUDIT.md`
+4. **Regenerate documentation**: `npm run policy:docs`
+
+5. **Verify with audit**: `npm run policy:check` or review `POLICY_AUDIT.md`
 
 **NEVER**:
 
@@ -149,6 +160,7 @@ if (!validation.isValid) {
 - Change base interface without updating all three policy files
 - Create policies without implementation enforcement
 - Skip severity classification
+- Manually edit policy documentation (use generator!)
 
 **See `POLICY_AUDIT.md` for complete alignment matrix and SOLID compliance details.**
 

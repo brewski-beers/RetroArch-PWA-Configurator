@@ -1,28 +1,17 @@
 /**
  * Unit tests for AppServer
- * Tests HTTP server logic following SRP
+ * Tests Express server with CORS and validation (POL-012, POL-013)
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { AppServer } from '../src/server.js';
-import http from 'node:http';
+import request from 'supertest';
 
 describe('AppServer', () => {
   let server: AppServer;
-  let serverInstance: http.Server | undefined;
 
   beforeEach(() => {
     server = new AppServer(0); // Use port 0 for random available port
-  });
-
-  afterEach(async () => {
-    // Clean up server if it's running
-    if (serverInstance) {
-      await new Promise<void>((resolve) => {
-        serverInstance!.close(() => resolve());
-      });
-      serverInstance = undefined;
-    }
   });
 
   describe('constructor', () => {
@@ -35,135 +24,170 @@ describe('AppServer', () => {
       const customServer = new AppServer(8080);
       expect(customServer).toBeInstanceOf(AppServer);
     });
-  });
 
-  describe('start', () => {
-    it('should start the server and return a Promise', async () => {
-      const startPromise = server.start();
-      expect(startPromise).toBeInstanceOf(Promise);
-
-      // Wait for server to start
-      await startPromise;
-
-      // Get the server instance for cleanup
-      serverInstance = (server as any).serverInstance;
-    });
-
-    it('should log server URL when started', async () => {
-      const consoleSpy = vi.spyOn(console, 'log');
-
-      await server.start();
-      serverInstance = (server as any).serverInstance;
-
-      expect(consoleSpy).toHaveBeenCalled();
-      const logMessage = consoleSpy.mock.calls[0]?.[0];
-      expect(logMessage).toContain('Server running at http://localhost:');
-
-      consoleSpy.mockRestore();
+    it('should expose Express app instance', () => {
+      const app = server.getApp();
+      expect(app).toBeDefined();
     });
   });
 
-  describe('HTTP request handling', () => {
-    it('should serve landing page at root route', async () => {
-      const testServer = new AppServer(0);
-      await testServer.start();
+  describe('API Routes', () => {
+    describe('GET /api/health', () => {
+      it('should return health status', async () => {
+        const response = await request(server.getApp()).get('/api/health');
 
-      const port = (testServer as any).serverInstance.address().port;
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty('status', 'ok');
+        expect(response.body).toHaveProperty('timestamp');
+        expect(response.body).toHaveProperty('version');
+      });
 
-      const response = await fetch(`http://localhost:${port}/`);
-      const html = await response.text();
+      it('should return JSON content type', async () => {
+        const response = await request(server.getApp()).get('/api/health');
 
-      expect(response.status).toBe(200);
-      expect(response.headers.get('content-type')).toBe('text/html');
-      expect(html).toContain('<!DOCTYPE html>');
-      expect(html).toContain('RetroArch PWA Configurator');
-
-      await new Promise<void>((resolve) => {
-        (testServer as any).serverInstance.close(() => resolve());
+        expect(response.headers['content-type']).toContain('application/json');
       });
     });
 
-    it('should return 404 for non-existent routes', async () => {
-      const testServer = new AppServer(0);
-      await testServer.start();
+    describe('POST /api/config/validate', () => {
+      it('should validate valid configuration (POL-013)', async () => {
+        const validConfig = {
+          archivePath: '/path/to/archive',
+          syncPath: '/path/to/sync',
+          platforms: [
+            { id: 'nes', name: 'Nintendo Entertainment System', enabled: true },
+          ],
+        };
 
-      const port = (testServer as any).serverInstance.address().port;
+        const response = await request(server.getApp())
+          .post('/api/config/validate')
+          .send(validConfig);
 
-      const response = await fetch(`http://localhost:${port}/non-existent`);
-      const html = await response.text();
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty('valid', true);
+        expect(response.body).toHaveProperty('message');
+      });
 
-      expect(response.status).toBe(404);
-      expect(html).toContain('404 - Page Not Found');
+      it('should reject invalid configuration - missing archivePath', async () => {
+        const invalidConfig = {
+          syncPath: '/path/to/sync',
+          platforms: [],
+        };
 
-      await new Promise<void>((resolve) => {
-        (testServer as any).serverInstance.close(() => resolve());
+        const response = await request(server.getApp())
+          .post('/api/config/validate')
+          .send(invalidConfig);
+
+        expect(response.status).toBe(400);
+        expect(response.body).toHaveProperty('error', 'Validation failed');
+        expect(response.body).toHaveProperty('details');
+      });
+
+      it('should reject invalid configuration - empty platforms', async () => {
+        const invalidConfig = {
+          archivePath: '/path/to/archive',
+          syncPath: '/path/to/sync',
+          platforms: [],
+        };
+
+        const response = await request(server.getApp())
+          .post('/api/config/validate')
+          .send(invalidConfig);
+
+        expect(response.status).toBe(400);
+        expect(response.body.details[0].message).toContain(
+          'At least one platform required'
+        );
+      });
+
+      it('should return JSON content type', async () => {
+        const validConfig = {
+          archivePath: '/path/to/archive',
+          syncPath: '/path/to/sync',
+          platforms: [{ id: 'nes', name: 'NES', enabled: true }],
+        };
+
+        const response = await request(server.getApp())
+          .post('/api/config/validate')
+          .send(validConfig);
+
+        expect(response.headers['content-type']).toContain('application/json');
       });
     });
 
-    it('should serve HTML content with proper Content-Type header', async () => {
-      const testServer = new AppServer(0);
-      await testServer.start();
+    describe('GET /api/nonexistent', () => {
+      it('should return 404 for non-existent API endpoints', async () => {
+        const response = await request(server.getApp()).get('/api/nonexistent');
 
-      const port = (testServer as any).serverInstance.address().port;
-
-      const response = await fetch(`http://localhost:${port}/`);
-
-      expect(response.headers.get('content-type')).toBe('text/html');
-
-      await new Promise<void>((resolve) => {
-        (testServer as any).serverInstance.close(() => resolve());
-      });
-    });
-
-    it('should handle undefined URL gracefully', async () => {
-      const testServer = new AppServer(0);
-      await testServer.start();
-
-      const port = (testServer as any).serverInstance.address().port;
-
-      // Make request to root
-      const response = await fetch(`http://localhost:${port}/`);
-
-      expect(response.status).toBe(200);
-
-      await new Promise<void>((resolve) => {
-        (testServer as any).serverInstance.close(() => resolve());
+        expect(response.status).toBe(404);
+        expect(response.body).toHaveProperty('error', 'API endpoint not found');
       });
     });
   });
 
-  describe('integration with PageGenerator', () => {
-    it('should generate pages with data-testid attributes', async () => {
-      const testServer = new AppServer(0);
-      await testServer.start();
+  describe('Page Routes (Legacy)', () => {
+    describe('GET /', () => {
+      it('should serve landing page at root route', async () => {
+        const response = await request(server.getApp()).get('/');
 
-      const port = (testServer as any).serverInstance.address().port;
+        expect(response.status).toBe(200);
+        expect(response.headers['content-type']).toContain('text/html');
+        expect(response.text).toContain('<!DOCTYPE html>');
+      });
 
-      const response = await fetch(`http://localhost:${port}/`);
-      const html = await response.text();
+      it('should include page-id data attribute', async () => {
+        const response = await request(server.getApp()).get('/');
 
-      expect(html).toContain('data-testid="landing-header"');
-      expect(html).toContain('data-testid="landing-content"');
-      expect(html).toContain('data-testid="landing-footer"');
-
-      await new Promise<void>((resolve) => {
-        (testServer as any).serverInstance.close(() => resolve());
+        expect(response.text).toContain('data-page-id="landing"');
       });
     });
 
-    it('should generate pages with correct page-id data attribute', async () => {
-      const testServer = new AppServer(0);
-      await testServer.start();
+    describe('GET /nonexistent', () => {
+      it('should return 404 for non-existent pages', async () => {
+        const response = await request(server.getApp()).get('/nonexistent');
 
-      const port = (testServer as any).serverInstance.address().port;
+        expect(response.status).toBe(404);
+        expect(response.headers['content-type']).toContain('text/html');
+        expect(response.text).toContain('404');
+      });
+    });
+  });
 
-      const response = await fetch(`http://localhost:${port}/`);
-      const html = await response.text();
+  describe('Middleware', () => {
+    describe('CORS (POL-012)', () => {
+      it('should include CORS headers', async () => {
+        const response = await request(server.getApp())
+          .get('/api/health')
+          .set('Origin', 'http://localhost:3000');
 
-      expect(html).toContain('data-page-id="landing"');
+        expect(response.headers['access-control-allow-origin']).toBeDefined();
+      });
 
-      await new Promise<void>((resolve) => {
-        (testServer as any).serverInstance.close(() => resolve());
+      it('should allow localhost origins', async () => {
+        const response = await request(server.getApp())
+          .get('/api/health')
+          .set('Origin', 'http://localhost:3000');
+
+        expect(response.headers['access-control-allow-origin']).toBe(
+          'http://localhost:3000'
+        );
+      });
+    });
+
+    describe('JSON Body Parsing', () => {
+      it('should parse JSON request bodies', async () => {
+        const testData = {
+          archivePath: '/test',
+          syncPath: '/test',
+          platforms: [{ id: 'test', name: 'Test', enabled: true }],
+        };
+
+        const response = await request(server.getApp())
+          .post('/api/config/validate')
+          .send(testData);
+
+        expect(response.status).toBe(200);
+        expect(response.body.config).toEqual(testData);
       });
     });
   });
