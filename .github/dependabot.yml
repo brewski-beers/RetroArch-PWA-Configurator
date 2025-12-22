@@ -1,0 +1,85 @@
+# Dependabot Configuration (POL-014: Automated Dependency Updates)
+# Self-healing architecture for dependency security and compatibility
+#
+# Features:
+# - Automated security updates (critical/high vulnerabilities)
+# - Weekly version updates for npm packages
+# - GitHub Actions updates
+# - Auto-grouping for related dependencies
+#
+# Reference: https://docs.github.com/en/code-security/dependabot
+
+version: 2
+updates:
+  # npm dependencies (POL-011, POL-014, POL-015, POL-017)
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 10
+    reviewers:
+      - brewski-beers
+    labels:
+      - dependencies
+      - npm
+      - automated
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    # Group patch/minor updates together (POL-015)
+    groups:
+      # Production dependencies - careful updates
+      production:
+        patterns:
+          - "express"
+          - "cors"
+          - "zod"
+        update-types:
+          - "patch"
+          - "minor"
+      # Development dependencies - can update more aggressively
+      development:
+        patterns:
+          - "@types/*"
+          - "@typescript-eslint/*"
+          - "@vitest/*"
+          - "eslint*"
+          - "prettier"
+          - "vitest"
+          - "typescript"
+        update-types:
+          - "patch"
+          - "minor"
+      # Testing frameworks
+      testing:
+        patterns:
+          - "@playwright/*"
+          - "vitest"
+          - "supertest"
+        update-types:
+          - "patch"
+    # Version update strategies (POL-015)
+    versioning-strategy: increase
+    # Security updates always created (POL-011)
+    allow:
+      - dependency-type: all
+
+  # GitHub Actions (POL-017)
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions
+      - automated
+    commit-message:
+      prefix: "ci"
+      include: "scope"

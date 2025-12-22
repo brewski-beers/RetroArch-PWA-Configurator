@@ -396,15 +396,281 @@ describe('PolicyChecker', () => {
     });
   });
 
+  describe('checkSecretsManagement', () => {
+    it('should pass when no hardcoded secrets are found', () => {
+      const result = checker.checkSecretsManagement();
+
+      expect(result.passed).toBe(true);
+      expect(result.message).toContain('No hardcoded secrets');
+    });
+
+    it('should fail when API_KEY pattern is detected', () => {
+      const mockContent = 'const API_KEY = "sk_test_51234567890abcdef";';
+
+      vi.spyOn(fs, 'readdirSync').mockReturnValue(['test.ts'] as any);
+      vi.spyOn(fs, 'statSync').mockReturnValue({
+        isDirectory: () => false,
+      } as any);
+      vi.spyOn(fs, 'readFileSync').mockReturnValue(mockContent);
+      vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+
+      const result = checker.checkSecretsManagement();
+
+      expect(result.passed).toBe(false);
+      expect(result.message).toContain('potential secret detected');
+    });
+
+    it('should fail when AWS access key pattern is detected', () => {
+      const mockContent = 'const aws = "AKIAIOSFODNN7EXAMPLE";';
+
+      vi.spyOn(fs, 'readdirSync').mockReturnValue(['test.ts'] as any);
+      vi.spyOn(fs, 'statSync').mockReturnValue({
+        isDirectory: () => false,
+      } as any);
+      vi.spyOn(fs, 'readFileSync').mockReturnValue(mockContent);
+      vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+
+      const result = checker.checkSecretsManagement();
+
+      expect(result.passed).toBe(false);
+      expect(result.message).toContain('potential secret detected');
+    });
+
+    it('should fail when GitHub token pattern is detected', () => {
+      const mockContent =
+        'const token = "ghp_1234567890abcdefghijklmnopqrstuvwx";';
+
+      vi.spyOn(fs, 'readdirSync').mockReturnValue(['test.ts'] as any);
+      vi.spyOn(fs, 'statSync').mockReturnValue({
+        isDirectory: () => false,
+      } as any);
+      vi.spyOn(fs, 'readFileSync').mockReturnValue(mockContent);
+      vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+
+      const result = checker.checkSecretsManagement();
+
+      expect(result.passed).toBe(false);
+      expect(result.message).toContain('potential secret detected');
+    });
+
+    it('should handle errors gracefully', () => {
+      vi.spyOn(fs, 'existsSync').mockImplementation(() => {
+        throw new Error('Permission denied');
+      });
+
+      const result = checker.checkSecretsManagement();
+
+      expect(result.passed).toBe(false);
+      expect(result.message).toContain('Error checking secrets management');
+    });
+  });
+
+  describe('checkDependencyAudit', () => {
+    it('should pass when package-lock.json exists and audit script is configured', () => {
+      const result = checker.checkDependencyAudit();
+
+      expect(result.passed).toBe(true);
+      expect(result.message).toContain('Dependency audit configured');
+    });
+
+    it('should fail when package-lock.json does not exist', () => {
+      vi.spyOn(fs, 'existsSync').mockReturnValue(false);
+
+      const result = checker.checkDependencyAudit();
+
+      expect(result.passed).toBe(false);
+      expect(result.message).toContain('package-lock.json not found');
+    });
+
+    it('should fail when audit script is not configured', () => {
+      const mockPackageJson = {
+        name: 'test',
+        version: '1.0.0',
+        scripts: {
+          test: 'vitest',
+        },
+      };
+
+      vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+      vi.spyOn(fs, 'readFileSync').mockImplementation((path: unknown) => {
+        if (typeof path === 'string' && path.includes('package.json')) {
+          return JSON.stringify(mockPackageJson);
+        }
+        return '{}';
+      });
+
+      const result = checker.checkDependencyAudit();
+
+      expect(result.passed).toBe(false);
+      expect(result.message).toContain('No npm audit script found');
+    });
+
+    it('should handle errors gracefully', () => {
+      vi.spyOn(fs, 'existsSync').mockImplementation(() => {
+        throw new Error('File system error');
+      });
+
+      const result = checker.checkDependencyAudit();
+
+      expect(result.passed).toBe(false);
+      expect(result.message).toContain('Error checking dependency audit');
+    });
+  });
+
+  describe('checkCORSConfiguration', () => {
+    it('should pass for Express server with CORS', () => {
+      const result = checker.checkCORSConfiguration();
+
+      expect(result.passed).toBe(true);
+      expect(result.message).toContain('CORS configured appropriately');
+    });
+
+    it('should fail when server.ts does not exist', () => {
+      vi.spyOn(fs, 'existsSync').mockReturnValue(false);
+
+      const result = checker.checkCORSConfiguration();
+
+      expect(result.passed).toBe(false);
+      expect(result.message).toContain('src/server.ts not found');
+    });
+
+    it('should fail when CORS is configured with wildcard', () => {
+      const mockServerContent = `
+        import express from 'express';
+        import cors from 'cors';
+        app.use(cors({ origin: '*' }));
+      `;
+
+      vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+      vi.spyOn(fs, 'readFileSync').mockReturnValue(mockServerContent);
+
+      const result = checker.checkCORSConfiguration();
+
+      expect(result.passed).toBe(false);
+      expect(result.message).toContain('wildcard (*)');
+    });
+
+    it('should fail when Express server lacks CORS configuration', () => {
+      const mockServerContent = `
+        import express from 'express';
+        const app = express();
+      `;
+
+      vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+      vi.spyOn(fs, 'readFileSync').mockReturnValue(mockServerContent);
+
+      const result = checker.checkCORSConfiguration();
+
+      expect(result.passed).toBe(false);
+      expect(result.message).toContain('Express server without CORS');
+    });
+
+    it('should handle errors gracefully', () => {
+      vi.spyOn(fs, 'existsSync').mockImplementation(() => {
+        throw new Error('Read error');
+      });
+
+      const result = checker.checkCORSConfiguration();
+
+      expect(result.passed).toBe(false);
+      expect(result.message).toContain('Error checking CORS configuration');
+    });
+  });
+
+  describe('checkInputValidation', () => {
+    it('should pass when no POST/PUT routes exist', () => {
+      const mockServerContent = `
+        import express from 'express';
+        const app = express();
+        app.get('/health', (req, res) => res.json({ status: 'ok' }));
+      `;
+
+      vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+      vi.spyOn(fs, 'readFileSync').mockReturnValue(mockServerContent);
+
+      const result = checker.checkInputValidation();
+
+      expect(result.passed).toBe(true);
+      expect(result.message).toContain('No POST/PUT routes found');
+    });
+
+    it('should pass when validation library is used with POST routes', () => {
+      const mockServerContent = `
+        import express from 'express';
+        import { z } from 'zod';
+        const app = express();
+        app.post('/api/data', (req, res) => res.json({ success: true }));
+      `;
+
+      vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+      vi.spyOn(fs, 'readFileSync').mockReturnValue(mockServerContent);
+
+      const result = checker.checkInputValidation();
+
+      expect(result.passed).toBe(true);
+      expect(result.message).toContain('Input validation configured');
+    });
+
+    it('should fail when server.ts does not exist', () => {
+      vi.spyOn(fs, 'existsSync').mockReturnValue(false);
+
+      const result = checker.checkInputValidation();
+
+      expect(result.passed).toBe(false);
+      expect(result.message).toContain('src/server.ts not found');
+    });
+
+    it('should fail when POST/PUT routes exist without validation', () => {
+      const mockServerContent = `
+        import express from 'express';
+        const app = express();
+        app.post('/api/data', (req, res) => res.json({ success: true }));
+        app.put('/api/data/:id', (req, res) => res.json({ updated: true }));
+      `;
+
+      vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+      vi.spyOn(fs, 'readFileSync').mockReturnValue(mockServerContent);
+
+      const result = checker.checkInputValidation();
+
+      expect(result.passed).toBe(false);
+      expect(result.message).toContain('without input validation library');
+    });
+
+    it('should handle errors gracefully', () => {
+      vi.spyOn(fs, 'existsSync').mockImplementation(() => {
+        throw new Error('File error');
+      });
+
+      const result = checker.checkInputValidation();
+
+      expect(result.passed).toBe(false);
+      expect(result.message).toContain('Error checking input validation');
+    });
+  });
+
   describe('runAllChecks', () => {
     it('should run all policy checks', async () => {
       const { results } = await checker.runAllChecks();
 
-      expect(results.length).toBeGreaterThanOrEqual(4);
+      expect(results.length).toBe(17); // POL-001 through POL-017
       expect(results.some((r) => r.rule.includes('POL-001'))).toBe(true);
       expect(results.some((r) => r.rule.includes('POL-002'))).toBe(true);
       expect(results.some((r) => r.rule.includes('POL-003'))).toBe(true);
       expect(results.some((r) => r.rule.includes('POL-004'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('POL-005'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('POL-006'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('POL-007'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('POL-008'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('POL-009'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('POL-010'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('POL-011'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('POL-012'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('POL-013'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('POL-014'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('POL-015'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('POL-016'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('POL-017'))).toBe(true);
     });
 
     it('should return overall passed status', async () => {
@@ -463,6 +729,113 @@ describe('PolicyChecker', () => {
       const testIdCheck = results.find((r) => r.rule.includes('POL-004'));
       expect(testIdCheck).toBeDefined();
       expect(testIdCheck?.passed).toBe(true);
+    });
+
+    it('should include ESLint Code Quality check', async () => {
+      const { results } = await checker.runAllChecks();
+
+      const eslintCheck = results.find((r) => r.rule.includes('POL-005'));
+      expect(eslintCheck).toBeDefined();
+      expect(eslintCheck?.passed).toBe(true);
+    });
+
+    it('should include Prettier Code Formatting check', async () => {
+      const { results } = await checker.runAllChecks();
+
+      const prettierCheck = results.find((r) => r.rule.includes('POL-006'));
+      expect(prettierCheck).toBeDefined();
+      expect(prettierCheck?.passed).toBe(true);
+    });
+
+    it('should include Pre-Commit Hooks check', async () => {
+      const { results } = await checker.runAllChecks();
+
+      const hooksCheck = results.find((r) => r.rule.includes('POL-007'));
+      expect(hooksCheck).toBeDefined();
+      expect(hooksCheck?.passed).toBe(true);
+    });
+
+    it('should include Git Workflow check', async () => {
+      const { results } = await checker.runAllChecks();
+
+      const gitWorkflowCheck = results.find((r) => r.rule.includes('POL-008'));
+      expect(gitWorkflowCheck).toBeDefined();
+      expect(gitWorkflowCheck?.passed).toBe(true);
+    });
+
+    it('should include TDD Approach check', async () => {
+      const { results } = await checker.runAllChecks();
+
+      const tddCheck = results.find((r) => r.rule.includes('POL-009'));
+      expect(tddCheck).toBeDefined();
+      expect(tddCheck?.passed).toBe(true);
+    });
+
+    it('should include Secrets Management check', async () => {
+      const { results } = await checker.runAllChecks();
+
+      const secretsCheck = results.find((r) => r.rule.includes('POL-010'));
+      expect(secretsCheck).toBeDefined();
+      expect(secretsCheck?.passed).toBe(true);
+    });
+
+    it('should include Dependency Security Audit check', async () => {
+      const { results } = await checker.runAllChecks();
+
+      const auditCheck = results.find((r) => r.rule.includes('POL-011'));
+      expect(auditCheck).toBeDefined();
+      expect(auditCheck?.passed).toBe(true);
+    });
+
+    it('should include CORS Configuration check', async () => {
+      const { results } = await checker.runAllChecks();
+
+      const corsCheck = results.find((r) => r.rule.includes('POL-012'));
+      expect(corsCheck).toBeDefined();
+      expect(corsCheck?.passed).toBe(true);
+    });
+
+    it('should include Input Validation check', async () => {
+      const { results } = await checker.runAllChecks();
+
+      const validationCheck = results.find((r) => r.rule.includes('POL-013'));
+      expect(validationCheck).toBeDefined();
+      expect(validationCheck?.passed).toBe(true);
+    });
+
+    it('should include Automated Dependency Updates check', async () => {
+      const { results } = await checker.runAllChecks();
+
+      const dependencyUpdatesCheck = results.find((r) =>
+        r.rule.includes('POL-014')
+      );
+      expect(dependencyUpdatesCheck).toBeDefined();
+    });
+
+    it('should include Version Compatibility Policy check', async () => {
+      const { results } = await checker.runAllChecks();
+
+      const versionCompatCheck = results.find((r) =>
+        r.rule.includes('POL-015')
+      );
+      expect(versionCompatCheck).toBeDefined();
+      expect(versionCompatCheck?.passed).toBe(true);
+    });
+
+    it('should include License Compliance check', async () => {
+      const { results } = await checker.runAllChecks();
+
+      const licenseCheck = results.find((r) => r.rule.includes('POL-016'));
+      expect(licenseCheck).toBeDefined();
+      expect(licenseCheck?.passed).toBe(true);
+    });
+
+    it('should include Supply Chain Security check', async () => {
+      const { results } = await checker.runAllChecks();
+
+      const supplyChainCheck = results.find((r) => r.rule.includes('POL-017'));
+      expect(supplyChainCheck).toBeDefined();
+      expect(supplyChainCheck?.passed).toBe(true);
     });
   });
 });

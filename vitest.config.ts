@@ -5,14 +5,14 @@ export default defineConfig({
     globals: false,
     environment: 'node',
     include: ['**/*.test.ts'],
-    exclude: ['node_modules/', 'dist/', '**/*.spec.ts'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/*.spec.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
       include: ['src/**/*.ts'],
       exclude: [
-        'node_modules/',
-        'dist/',
+        '**/node_modules/**',
+        '**/dist/**',
         'tests/',
         '**/*.spec.ts',
         '**/*.test.ts',
@@ -24,7 +24,7 @@ export default defineConfig({
       thresholds: {
         lines: 70,
         functions: 80,
-        branches: 75,
+        branches: 75, // TODO(POL-002): Restore to ≥85% after Phase D (see COVERAGE_STRATEGY.md)
         statements: 70,
       },
       // Exclude CLI execution blocks from coverage
