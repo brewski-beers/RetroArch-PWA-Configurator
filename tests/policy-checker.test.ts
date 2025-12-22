@@ -294,7 +294,7 @@ describe('PolicyChecker', () => {
 
       expect(result.passed).toBe(false);
       expect(result.message).toContain('Function coverage');
-      expect(result.message).toContain('below threshold 100%');
+      expect(result.message).toContain('below threshold 80%');
     });
 
     it('should handle files with no statement or function data', () => {
