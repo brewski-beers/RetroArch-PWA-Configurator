@@ -46,6 +46,7 @@
     "tests/**/*",
     "e2e/**/*",
     "examples/**/*",
+    "mcp-server/**/*",
     "*.config.ts"
   ],
   "exclude": ["node_modules", "dist"]
