@@ -3,16 +3,9 @@ name: PR Verification
 on:
   pull_request:
     branches: [ main, master ]
-    paths:
-      - 'src/**'
-      - 'config/**'
-      - 'e2e/**'
-      - 'tests/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tsconfig.json'
-      - '*.config.ts'
-      - '.github/**'
+    # Note: Path filters removed to ensure this workflow ALWAYS runs for ALL PRs
+    # This is required for branch protection, especially for Dependabot PRs
+    # that may only update files like package.json or .github/workflows/*.yml
 
 # Cancel in-progress runs for the same PR
 concurrency:
