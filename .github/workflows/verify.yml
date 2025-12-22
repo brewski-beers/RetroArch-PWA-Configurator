@@ -27,7 +27,7 @@ jobs:
     timeout-minutes: 3
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Setup Environment
       uses: ./.github/actions/setup-node-env
@@ -46,7 +46,7 @@ jobs:
     needs: format-and-lint
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Setup Environment
       uses: ./.github/actions/setup-node-env
@@ -64,7 +64,7 @@ jobs:
     needs: type-check-and-build
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Setup Environment
       uses: ./.github/actions/setup-node-env
@@ -82,7 +82,7 @@ jobs:
     needs: type-check-and-build
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Setup Environment
       uses: ./.github/actions/setup-node-env
@@ -103,7 +103,7 @@ jobs:
     needs: type-check-and-build
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Setup Environment
       uses: ./.github/actions/setup-node-env
