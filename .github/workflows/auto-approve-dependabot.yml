@@ -40,70 +40,84 @@ jobs:
     runs-on: ubuntu-latest
     # Only run on push to main (to update open Dependabot PRs)
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
+
     steps:
-    - name: Update Dependabot PRs
-      uses: actions/github-script@v7
-      with:
-        script: |
-          // Get all open PRs from Dependabot
-          const { data: pullRequests } = await github.rest.pulls.list({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            state: 'open',
-            per_page: 100
-          });
-          
-          const dependabotPRs = pullRequests.filter(pr => 
-            pr.user.login === 'dependabot[bot]'
-          );
-          
-          console.log(`Found ${dependabotPRs.length} open Dependabot PRs`);
-          
-          // Update each Dependabot PR with latest main
-          for (const pr of dependabotPRs) {
-            try {
-              await github.rest.pulls.updateBranch({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: pr.number
-              });
-              console.log(`✅ Updated PR #${pr.number}: ${pr.title}`);
-            } catch (error) {
-              console.log(`⚠️ Could not update PR #${pr.number}: ${error.message}`);
+      - name: Update Dependabot PRs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Get all open PRs from Dependabot
+            const { data: pullRequests } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+
+            const dependabotPRs = pullRequests.filter(pr =>
+              pr.user.login === 'dependabot[bot]'
+            );
+
+            console.log(`Found ${dependabotPRs.length} open Dependabot PRs`);
+
+            // Update each Dependabot PR with latest main
+            for (const pr of dependabotPRs) {
+              try {
+                await github.rest.pulls.updateBranch({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.number
+                });
+                console.log(`✅ Updated PR #${pr.number}: ${pr.title}`);
+              } catch (error) {
+                const msg = error.message;
+                console.log(`⚠️ Could not update PR #${pr.number}: ${msg}`);
+              }
             }
-          }
 
   # Wait for all required checks to complete and auto-approve
   dependabot-approve:
     name: Auto-Approve Dependabot PR
     runs-on: ubuntu-latest
-    # Only run for Dependabot PRs on pull_request_target events (security: prevent unauthorized approvals)
-    if: github.event_name == 'pull_request_target' && github.event.pull_request.user.login == 'dependabot[bot]'
-    
+    # Only run for Dependabot PRs on pull_request_target events
+    # Security: prevent unauthorized approvals
+    if: |
+      github.event_name == 'pull_request_target' &&
+      github.event.pull_request.user.login == 'dependabot[bot]'
+
     steps:
-    - name: Wait for CI Checks
-      uses: lewagon/wait-on-check-action@v1.3.4
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
-        # Wait for the main verification workflow
-        check-name: '✅ Ready to Merge'
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        wait-interval: 20
-        allowed-conclusions: success
-    
-    - name: Approve PR
-      uses: hmarr/auto-approve-action@v4
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Add Success Comment
-      uses: actions/github-script@v7
-      with:
-        script: |
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: '✅ **Auto-approved by Dependabot workflow**\n\nAll CI checks passed successfully. This PR has been automatically approved.\n\n💡 **Note**: Manual merge is still required. Review the changes and merge when ready.'
-          })
+      - name: Wait for CI Checks
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          # Wait for the main verification workflow
+          check-name: '✅ Ready to Merge'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 20
+          allowed-conclusions: success
+
+      - name: Approve PR
+        uses: hmarr/auto-approve-action@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add Success Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              '✅ **Auto-approved by Dependabot workflow**',
+              '',
+              'All CI checks passed successfully.',
+              'This PR has been automatically approved.',
+              '',
+              '💡 **Note**: Manual merge is still required.',
+              'Review the changes and merge when ready.'
+            ].join('\n');
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            })
