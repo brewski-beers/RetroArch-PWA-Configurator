@@ -8,11 +8,12 @@ import type {
   IValidator,
   PhaseResult,
   ROMFile,
+  ManifestEntry,
 } from '../interfaces/pipeline.interface.js';
 import type { PlatformConfig } from '../interfaces/platform-config.interface.js';
 import { createHash } from 'node:crypto';
 import { createReadStream, access } from 'node:fs';
-import { readdir } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { dirname, basename, extname, join } from 'node:path';
 
@@ -143,58 +144,202 @@ export class Validator implements IValidator {
   }
 
   /**
-   * Checks for duplicates
+   * Checks for duplicates by searching all platform manifests
    */
-  async checkDuplicate(_hash: string): Promise<PhaseResult<boolean>> {
-    // TODO: Implement in Phase D
-    return Promise.resolve({
-      success: true,
-      data: false,
-      metadata: {
-        checkedAt: new Date().toISOString(),
-      },
-    });
+  async checkDuplicate(hash: string): Promise<PhaseResult<boolean>> {
+    try {
+      const manifestsDir = this.config.directories.archive.manifests;
+      const manifestErrors: string[] = [];
+
+      // Read all manifest files in the manifests directory
+      let manifestFiles: string[] = [];
+      try {
+        manifestFiles = await readdir(manifestsDir);
+      } catch {
+        // Directory doesn't exist or can't be read - no duplicates
+        return {
+          success: true,
+          data: false,
+          metadata: {
+            checkedAt: new Date().toISOString(),
+          },
+        };
+      }
+
+      // Filter to only .json files
+      const jsonFiles = manifestFiles.filter((file) => file.endsWith('.json'));
+
+      // Search each manifest for the hash
+      for (const manifestFile of jsonFiles) {
+        try {
+          const manifestPath = join(manifestsDir, manifestFile);
+          const data = await readFile(manifestPath, 'utf-8');
+          const manifest = JSON.parse(data) as ManifestEntry[];
+
+          // Search for hash in this manifest
+          const duplicate = manifest.find((entry) => entry.hash === hash);
+          if (duplicate) {
+            return {
+              success: true,
+              data: true,
+              metadata: {
+                checkedAt: new Date().toISOString(),
+                foundInManifest: manifestFile,
+                duplicateOf: duplicate.filename,
+              },
+            };
+          }
+        } catch (error) {
+          // Track malformed manifests but continue searching
+          manifestErrors.push(
+            `${manifestFile}: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
+        }
+      }
+
+      // No duplicate found
+      const result: PhaseResult<boolean> = {
+        success: true,
+        data: false,
+        metadata: {
+          checkedAt: new Date().toISOString(),
+        },
+      };
+
+      if (manifestErrors.length > 0) {
+        result.metadata = {
+          ...result.metadata,
+          manifestErrors,
+        };
+      }
+
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        data: false,
+      };
+    }
   }
 
   /**
    * Validates BIOS dependencies
    */
   async validateBIOSDependencies(rom: ROMFile): Promise<PhaseResult<boolean>> {
-    // TODO: Implement in Phase D
     const platform = this.config.platforms.find((p) => p.id === rom.platform);
     if (!platform) {
-      return Promise.resolve({
+      return {
         success: false,
         error: `Platform not found: ${rom.platform}`,
-      });
+      };
     }
 
-    if (!platform.requiresBIOS) {
-      return Promise.resolve({
+    if (!platform.requiresBIOS || !platform.biosFiles) {
+      return {
         success: true,
         data: true,
         metadata: {
           biosRequired: false,
         },
-      });
+      };
     }
 
-    // Placeholder for BIOS validation
-    return Promise.resolve({
+    // Check each required BIOS file
+    const biosDir = this.config.directories.archive.bios;
+    const foundFiles: string[] = [];
+    const missingFiles: string[] = [];
+
+    for (const biosFile of platform.biosFiles) {
+      const biosPath = join(biosDir, biosFile);
+      try {
+        await new Promise<void>((resolve, reject) => {
+          access(biosPath, constants.R_OK, (err) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        });
+        foundFiles.push(biosFile);
+      } catch {
+        missingFiles.push(biosFile);
+      }
+    }
+
+    const allFilesFound = missingFiles.length === 0;
+
+    return {
       success: true,
-      data: true,
+      data: allFilesFound,
       metadata: {
         biosRequired: true,
         biosFiles: platform.biosFiles,
+        foundFiles,
+        ...(missingFiles.length > 0 && { missingFiles }),
       },
-    });
+    };
   }
 
   /**
    * Validates naming correctness
+   * Checks for valid filename format and extension
    */
-  async validateNaming(_rom: ROMFile): Promise<PhaseResult<boolean>> {
-    // TODO: Implement in Phase D
+  async validateNaming(rom: ROMFile): Promise<PhaseResult<boolean>> {
+    const MAX_FILENAME_LENGTH = 255;
+    const INVALID_CHARS_REGEX = /[<>:"|?*]/;
+
+    // Check for empty filename
+    if (!rom.filename || rom.filename.trim().length === 0) {
+      return Promise.resolve({
+        success: true,
+        data: false,
+        metadata: {
+          validatedAt: new Date().toISOString(),
+          reason: 'Filename is empty',
+        },
+      });
+    }
+
+    // Check for extension
+    if (!rom.extension || rom.extension.trim().length === 0) {
+      return Promise.resolve({
+        success: true,
+        data: false,
+        metadata: {
+          validatedAt: new Date().toISOString(),
+          reason: 'Filename missing extension',
+        },
+      });
+    }
+
+    // Check for invalid characters
+    if (INVALID_CHARS_REGEX.test(rom.filename)) {
+      const invalidChars = rom.filename.match(INVALID_CHARS_REGEX);
+      return Promise.resolve({
+        success: true,
+        data: false,
+        metadata: {
+          validatedAt: new Date().toISOString(),
+          invalidCharacters: invalidChars ? [...invalidChars] : [],
+        },
+      });
+    }
+
+    // Check for filename length
+    if (rom.filename.length > MAX_FILENAME_LENGTH) {
+      return Promise.resolve({
+        success: true,
+        data: false,
+        metadata: {
+          validatedAt: new Date().toISOString(),
+          reason: `Filename too long (max ${MAX_FILENAME_LENGTH} characters)`,
+        },
+      });
+    }
+
+    // All validations passed
     return Promise.resolve({
       success: true,
       data: true,
