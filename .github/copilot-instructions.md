@@ -37,6 +37,15 @@ _Always one atomic action per prompt. No multipart or “and also” requests._
 
 ---
 
+## ✅ Verification Requirements
+
+- **ALWAYS run `npm run ci:verify` after making code changes.** This ensures policy compliance and regression-free refactors.
+- **ci:verify includes:** YAGNI check, format check, lint, type-check, build, policy coverage, policy check, test coverage, and E2E tests.
+- **Do NOT commit changes that break ci:verify.** Fix issues before committing.
+- **Pre-existing failures:** If ci:verify fails on checks unrelated to your changes, document them but do not fix unrelated issues.
+
+---
+
 ## 🔄 Continuous Improvement
 
 - **Review these instructions after project policy/config changes or upon unusual Copilot billing.**
