@@ -23,6 +23,8 @@ export interface BasePolicyRule {
     manual: boolean;
     blocking: boolean;
   };
+  /** Additional metadata for documentation and enforcement guidance */
+  metadata?: Record<string, unknown>;
 }
 
 /**

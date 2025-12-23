@@ -171,6 +171,18 @@ The `UnifiedPolicySystem` provides:
 - **POL-002**: Test Coverage Thresholds - Validated against coverage-final.json (95% statements, 100% functions)
 - **POL-004**: Test ID Attributes - Validated by policy-checker.ts
 
+### TEST/E2E Per-File Thresholds
+
+- Minimum factory usage per unit test file: 1 occurrence (TEST-001)
+- Minimum getByTestId() usage per E2E spec file: 1 occurrence (E2E-001)
+
+Defined as constants in [src/policy-checker.ts](src/policy-checker.ts):
+
+- MIN_FACTORY_USAGE_PER_TEST
+- MIN_TESTID_USAGE_PER_E2E
+
+The CLI prints concise remediation tips when violations occur to aid quick fixes.
+
 ### ⚠️ Manual Enforcement (Code Review Required)
 
 - **POL-003**: SOLID Principles - Architectural review

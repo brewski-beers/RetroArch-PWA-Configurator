@@ -27,6 +27,7 @@
     "test:coverage:summary": "vitest run --coverage --reporter=verbose 2>&1 | grep -A 30 'Coverage report'",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
+    "test:gui": "playwright test --ui",
     "test:e2e": "playwright test",
     "type-check": "tsc --noEmit",
     "demo:ingest": "tsx examples/ingest-rom.ts",
@@ -51,6 +52,7 @@
   "devDependencies": {
     "@playwright/test": "^1.40.0",
     "@types/cors": "^2.8.19",
+    "@types/escape-html": "^1.0.4",
     "@types/express": "^5.0.6",
     "@types/node": "^20.10.0",
     "@types/supertest": "^6.0.3",
@@ -73,6 +75,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.1",
     "cors": "^2.8.5",
+    "escape-html": "^1.0.3",
     "express": "^4.21.2",
     "zod": "^4.2.1"
   }

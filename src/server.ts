@@ -1,18 +1,88 @@
 /**
  * Express HTTP Server
- * API server with CORS, validation, and static file serving
+ * API server with CORS, validation, rate limiting, and static file serving
  * Single responsibility: coordinate middleware and routes
- * Following POL-012 (CORS) and POL-013 (Input Validation)
+ * Following POL-012 (CORS), POL-013 (Input Validation), and POL-021 (Rate Limiting)
  */
 
 import express, { type Express, type Request, type Response } from 'express';
+import path from 'node:path';
+import { promises as fsp } from 'node:fs';
 import cors from 'cors';
+import escapeHtml from 'escape-html';
 import { PageGenerator } from './pages/page-generator.js';
 import {
   getCorsConfig,
   configValidationSchema,
 } from '../config/routes.config.js';
 import { validateRequest } from './middleware/validation.middleware.js';
+import {
+  apiRateLimiter,
+  strictApiRateLimiter,
+  contentRateLimiter,
+} from './middleware/rate-limit.middleware.js';
+import { ConfigLoader } from './config/config-loader.js';
+
+const HTTP_STATUS_INTERNAL_ERROR = 500;
+const HTTP_STATUS_SERVICE_UNAVAILABLE = 503;
+
+// Simple safe join to prevent path traversal
+function safeJoin(base: string, sub: string): string {
+  const resolved = path.resolve(base, sub);
+  if (!resolved.startsWith(base)) {
+    throw new Error('PATH_TRAVERSAL_BLOCKED');
+  }
+  return resolved;
+}
+
+async function renderDirIndex(
+  baseDir: string,
+  subPath: string
+): Promise<string> {
+  const abs = safeJoin(baseDir, subPath);
+  const entries = await fsp.readdir(abs, { withFileTypes: true });
+  const parent = subPath !== '' ? path.posix.dirname(subPath) : null;
+  const links = entries
+    .sort((a, b) => Number(b.isDirectory()) - Number(a.isDirectory()))
+    .map((e) => {
+      const name = e.name;
+      const rel = subPath ? `${subPath}/${name}` : name;
+      const href = e.isDirectory()
+        ? `/content/${encodeURIComponent(rel)}`
+        : `/content/${encodeURIComponent(rel)}?download=1`;
+      const type = e.isDirectory() ? 'dir' : 'file';
+      return `<li data-testid="content-item" data-type="${escapeHtml(type)}">
+        <a href="${escapeHtml(href)}" data-testid="content-link">${escapeHtml(name)}</a>
+      </li>`;
+    })
+    .join('\n');
+
+  const listContent =
+    links.length > 0 ? links : '<li data-testid="content-empty">No items</li>';
+
+  const upLink =
+    parent !== null && parent !== '.'
+      ? `<a href="${escapeHtml(`/content/${encodeURIComponent(parent)}`)}" data-testid="content-up">Up</a>`
+      : '';
+
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>ROMs Index - ${escapeHtml(subPath || '/')}</title>
+  </head>
+  <body>
+    <header data-testid="content-header"><h1>ROMs Index</h1></header>
+    <main data-testid="content-index">
+      ${upLink}
+      <ul data-testid="content-list">
+        ${listContent}
+      </ul>
+    </main>
+    <footer data-testid="content-footer"><small>TechByBrewski</small></footer>
+  </body>
+</html>`;
+}
 
 export class AppServer {
   private readonly app: Express;
@@ -35,11 +105,17 @@ export class AppServer {
    * Setup middleware stack
    * POL-012: CORS with explicit allowlist (no wildcards)
    * POL-013: JSON parsing for validation
+   * POL-021: Rate limiting for DoS protection
    */
   private setupMiddleware(): void {
     // CORS configuration (POL-012)
     const corsOptions = getCorsConfig();
     this.app.use(cors(corsOptions));
+
+    // Rate limiting for all routes (POL-021)
+    // Apply before other middleware to reject requests early
+    this.app.use('/api', apiRateLimiter);
+    this.app.use(['/content', '/content/*'], contentRateLimiter);
 
     // JSON body parsing for API endpoints
     this.app.use(express.json({ limit: '10mb' }));
@@ -63,6 +139,9 @@ export class AppServer {
     // API Routes (from configuration)
     this.setupApiRoutes();
 
+    // Content index routes for Remote Downloader
+    this.setupContentIndexRoutes();
+
     // Legacy page routes (for backward compatibility)
     this.setupPageRoutes();
   }
@@ -70,6 +149,7 @@ export class AppServer {
   /**
    * Setup API routes from configuration
    * POL-013: All POST/PUT/PATCH routes have Zod validation
+   * POL-021: Strict rate limiting on write operations
    */
   private setupApiRoutes(): void {
     // GET /api/health - Health check endpoint
@@ -81,9 +161,10 @@ export class AppServer {
       });
     });
 
-    // POST /api/config/validate - Validate configuration (POL-013)
+    // POST /api/config/validate - Validate configuration (POL-013 + POL-021)
     this.app.post(
       '/api/config/validate',
+      strictApiRateLimiter,
       validateRequest(configValidationSchema, 'body'),
       (req: Request, res: Response) => {
         // Configuration is already validated by middleware
@@ -97,6 +178,106 @@ export class AppServer {
         });
       }
     );
+  }
+
+  /**
+   * Expose read-only content index for RetroArch Remote Downloader
+   * Serves HTML index at /content and file downloads via ?download=1
+   */
+  private setupContentIndexRoutes(): void {
+    let syncContentDir: string | null = null;
+
+    const ensureContentDir = async (): Promise<string | null> => {
+      if (syncContentDir !== null) {
+        return syncContentDir;
+      }
+      try {
+        const loader = new ConfigLoader();
+        const result = await loader.load();
+        if (result.success === true && result.config !== undefined) {
+          // sync.content.path holds the ROMs directory
+          syncContentDir = path.resolve(result.config.sync.content.path);
+          // Ensure base directory exists so index can render even when empty
+          await fsp.mkdir(syncContentDir, { recursive: true });
+          return syncContentDir;
+        }
+      } catch {
+        // Ignore, will return null
+      }
+      return null;
+    };
+
+    this.app.get(
+      ['/content', '/content/*'],
+      async (req: Request, res: Response) => {
+        try {
+          const base = await ensureContentDir();
+          if (base === null) {
+            return res
+              .status(HTTP_STATUS_SERVICE_UNAVAILABLE)
+              .send('CONTENT_INDEX_NOT_READY');
+          }
+          const wildParam = (req.params as { [key: string]: string })[0];
+          const wild =
+            wildParam === undefined || wildParam === null ? '' : wildParam;
+          const subPath = decodeURIComponent(wild);
+          const abs = safeJoin(base, subPath);
+          const stat = await fsp.stat(abs);
+
+          const hasDownload = typeof req.query['download'] !== 'undefined';
+          if (stat.isFile() && hasDownload) {
+            res.sendFile(abs);
+            return;
+          }
+
+          if (stat.isDirectory()) {
+            const html = await renderDirIndex(base, subPath);
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            res.send(html);
+            return;
+          }
+
+          const parent = path.posix.dirname(subPath);
+          const html = await renderDirIndex(base, parent === '.' ? '' : parent);
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          res.send(html);
+          return;
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.error('Content index error:', err);
+          res.status(HTTP_STATUS_INTERNAL_ERROR).send('CONTENT_INDEX_ERROR');
+          return;
+        }
+      }
+    );
+
+    this.app.get('/api/content-index', async (_req: Request, res: Response) => {
+      try {
+        const base = await ensureContentDir();
+        if (base === null) {
+          res
+            .status(HTTP_STATUS_SERVICE_UNAVAILABLE)
+            .json({ error: 'CONTENT_INDEX_NOT_READY' });
+          return;
+        }
+        const entries = await fsp.readdir(base, { withFileTypes: true });
+        res.json({
+          baseDir: base,
+          items: entries.map((e) => ({
+            name: e.name,
+            type: e.isDirectory() ? 'dir' : 'file',
+          })),
+        });
+        return;
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Content index API error:', err);
+        res
+          .status(HTTP_STATUS_INTERNAL_ERROR)
+          .json({ error: 'CONTENT_INDEX_ERROR' });
+        return;
+      }
+    });
   }
 
   /**
@@ -116,7 +297,7 @@ export class AppServer {
       // Get page configuration for this route
       const pageConfig = this.pageGenerator.getPageByRoute(url);
 
-      if (pageConfig) {
+      if (pageConfig !== undefined) {
         const html = this.pageGenerator.generatePage(pageConfig);
         res.setHeader('Content-Type', 'text/html');
         res.send(html);

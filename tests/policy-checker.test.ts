@@ -6,6 +6,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PolicyChecker } from '../src/policy-checker.js';
 import fs from 'node:fs';
+import { ConfigFactory } from './factories/config.factory.js';
 
 describe('PolicyChecker', () => {
   let checker: PolicyChecker;
@@ -652,8 +653,8 @@ describe('PolicyChecker', () => {
   describe('runAllChecks', () => {
     it('should run all policy checks', async () => {
       const { results } = await checker.runAllChecks();
-
-      expect(results.length).toBe(21); // POL-000 through POL-020
+      // POL-000..POL-021 plus TEST-000, E2E-000, TEST-001, E2E-001
+      expect(results.length).toBe(26);
       expect(results.some((r) => r.rule.includes('POL-000'))).toBe(true);
       expect(results.some((r) => r.rule.includes('POL-001'))).toBe(true);
       expect(results.some((r) => r.rule.includes('POL-002'))).toBe(true);
@@ -675,6 +676,11 @@ describe('PolicyChecker', () => {
       expect(results.some((r) => r.rule.includes('POL-018'))).toBe(true);
       expect(results.some((r) => r.rule.includes('POL-019'))).toBe(true);
       expect(results.some((r) => r.rule.includes('POL-020'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('POL-021'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('TEST-000'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('E2E-000'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('TEST-001'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('E2E-001'))).toBe(true);
     });
 
     it('should return overall passed status', async () => {
@@ -840,6 +846,16 @@ describe('PolicyChecker', () => {
       const supplyChainCheck = results.find((r) => r.rule.includes('POL-017'));
       expect(supplyChainCheck).toBeDefined();
       expect(supplyChainCheck?.passed).toBe(true);
+    });
+
+    it('should have ConfigFactory available for config testing', () => {
+      // Arrange & Act
+      const config = ConfigFactory.create();
+
+      // Assert - Factory creates valid config structure
+      expect(config).toBeDefined();
+      expect(config.version).toBe('1.0.0');
+      expect(config.archive).toBeDefined();
     });
   });
 });

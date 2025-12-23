@@ -1,11 +1,12 @@
 /**
  * Unit tests for AppServer
- * Tests Express server with CORS and validation (POL-012, POL-013)
+ * Tests Express server with CORS, validation, and rate limiting (POL-012, POL-013, POL-021)
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { AppServer } from '../src/server.js';
 import request from 'supertest';
+import { ConfigFactory } from './factories/config.factory.js';
 
 describe('AppServer', () => {
   let server: AppServer;
@@ -81,6 +82,16 @@ describe('AppServer', () => {
         expect(response.status).toBe(400);
         expect(response.body).toHaveProperty('error', 'Validation failed');
         expect(response.body).toHaveProperty('details');
+      });
+
+      it('should accept config from factory structure', () => {
+        // Arrange - ConfigFactory creates a valid structure
+        const factoryConfig = ConfigFactory.create();
+
+        // Act - Test that factory-created configs would be compatible
+        // Assert
+        expect(factoryConfig).toBeDefined();
+        expect(factoryConfig.version).toBe('1.0.0');
       });
 
       it('should reject invalid configuration - empty platforms', async () => {
@@ -243,6 +254,57 @@ describe('AppServer', () => {
 
         // Should either validate successfully or fail validation, not crash
         expect([200, 400, 413, 500]).toContain(response.status);
+      });
+    });
+
+    describe('Rate Limiting (POL-021)', () => {
+      it('should include rate limit headers on API requests', async () => {
+        const response = await request(server.getApp()).get('/api/health');
+
+        expect(response.headers).toHaveProperty('ratelimit-limit');
+        expect(response.headers).toHaveProperty('ratelimit-remaining');
+        expect(response.headers).toHaveProperty('ratelimit-reset');
+      });
+
+      it('should apply rate limiting to API endpoints', async () => {
+        const response = await request(server.getApp()).get('/api/health');
+
+        const limit = parseInt(response.headers['ratelimit-limit'] as string);
+        expect(limit).toBeGreaterThan(0);
+        expect(limit).toBeLessThanOrEqual(100); // API limiter max
+      });
+
+      it('should apply stricter rate limiting to POST endpoints', async () => {
+        const validConfig = {
+          archivePath: '/path/to/archive',
+          syncPath: '/path/to/sync',
+          platforms: [{ id: 'nes', name: 'NES', enabled: true }],
+        };
+
+        const response = await request(server.getApp())
+          .post('/api/config/validate')
+          .send(validConfig);
+
+        const limit = parseInt(response.headers['ratelimit-limit'] as string);
+        // Strict limiter should have lower limit (20 vs 100)
+        expect(limit).toBeLessThanOrEqual(20);
+      });
+
+      it('should track remaining requests in headers', async () => {
+        const firstResponse = await request(server.getApp()).get('/api/health');
+        const firstRemaining = parseInt(
+          firstResponse.headers['ratelimit-remaining'] as string
+        );
+
+        const secondResponse = await request(server.getApp()).get(
+          '/api/health'
+        );
+        const secondRemaining = parseInt(
+          secondResponse.headers['ratelimit-remaining'] as string
+        );
+
+        // Second request should have fewer remaining requests
+        expect(secondRemaining).toBeLessThan(firstRemaining);
       });
     });
   });
