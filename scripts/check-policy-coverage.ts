@@ -35,7 +35,9 @@ function extractPolicyIds(): Map<string, { name: string; category: string }> {
     /id:\s*'(POL-\d+)'[\s\S]*?name:\s*'([^']+)'/g
   );
   for (const match of appMatches) {
-    policies.set(match[1], { name: match[2], category: 'application' });
+    if (match[1] !== undefined && match[2] !== undefined) {
+      policies.set(match[1], { name: match[2], category: 'application' });
+    }
   }
 
   // Read test policies
@@ -47,7 +49,9 @@ function extractPolicyIds(): Map<string, { name: string; category: string }> {
     /id:\s*'(TEST-\d+)'[\s\S]*?name:\s*'([^']+)'/g
   );
   for (const match of testMatches) {
-    policies.set(match[1], { name: match[2], category: 'testing' });
+    if (match[1] !== undefined && match[2] !== undefined) {
+      policies.set(match[1], { name: match[2], category: 'testing' });
+    }
   }
 
   // Read e2e policies
@@ -59,7 +63,9 @@ function extractPolicyIds(): Map<string, { name: string; category: string }> {
     /id:\s*'(E2E-\d+)'[\s\S]*?name:\s*'([^']+)'/g
   );
   for (const match of e2eMatches) {
-    policies.set(match[1], { name: match[2], category: 'e2e' });
+    if (match[1] !== undefined && match[2] !== undefined) {
+      policies.set(match[1], { name: match[2], category: 'e2e' });
+    }
   }
 
   return policies;
