@@ -6,16 +6,25 @@
 
 ## 🎯 Core Principles
 
-**SOLID + Config-as-Infrastructure + Policy-as-Code**
+**Principle Hierarchy** (Priority Order):
 
-- Every module has ONE purpose (SRP)
-- Extend via config files, not code modifications (OCP)
-- All behavior defined in `config/*.config.ts`
-- All decisions reference a policy ID (POL-\*, TEST-\*, E2E-\*)
+1. **YAGNI/KISS**: Don't build what you don't need. Simple solutions beat complex ones.
+2. **Config-First**: Extend via `config/*.config.ts`, not new code. Direct imports > servers/APIs.
+3. **Policy-as-Code**: All decisions reference a policy ID (POL-\*, TEST-\*, E2E-\*)
+4. **SOLID**: Apply when building new modules (SRP, OCP, LSP, ISP, DIP)
+
+**When principles conflict, follow the hierarchy above.**
+
+Examples:
+
+- ✅ Direct import from `config/unified-policy.config.ts` (Config-First)
+- ❌ Build MCP server to expose same data (violates YAGNI + Config-First)
+- ✅ Add new rule to existing config file (OCP + Config-First)
+- ❌ Create new service layer when config export works (violates KISS)
 
 ## 📋 Policy System (31 Rules)
 
-**Query full details**: Use MCP server or check `config/unified-policy.config.ts`
+**Query full details**: Check `config/unified-policy.config.ts` (source of truth)
 
 ### Critical Rules (Always Enforce)
 

@@ -112,13 +112,6 @@
         "@typescript-eslint/strict-boolean-expressions": "off",
         "no-magic-numbers": "off"
       }
-    },
-    {
-      "files": ["mcp-server/**/*.ts"],
-      "rules": {
-        "no-console": "off",
-        "no-magic-numbers": "off"
-      }
     }
   ],
   "ignorePatterns": [
@@ -127,6 +120,7 @@
     "coverage/",
     "playwright-report/",
     "test-results/",
+    "docs/archive/",
     "*.js",
     "*.d.ts"
   ]

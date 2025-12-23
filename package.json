@@ -21,6 +21,8 @@
     "security:audit": "npm audit --audit-level=high",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:coverage:ui": "vitest run --coverage && open coverage/index.html",
+    "test:coverage:summary": "vitest run --coverage --reporter=verbose 2>&1 | grep -A 30 'Coverage report'",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
@@ -30,8 +32,6 @@
     "demo:snes": "tsx examples/ingest-rom.ts examples/roms/demo-game.sfc",
     "demo:genesis": "tsx examples/ingest-rom.ts examples/roms/demo-game.md",
     "demo:all": "npm run demo:nes && npm run demo:snes && npm run demo:genesis",
-    "mcp:build": "tsc --project mcp-server/tsconfig.json",
-    "mcp:start": "node dist/mcp-server/policy-server.js",
     "ci:verify": "npm run format:check && npm run lint && npm run type-check && npm run build && npm run policy:check && npm run test:coverage && npm run test:e2e",
     "prepare": "husky"
   },
