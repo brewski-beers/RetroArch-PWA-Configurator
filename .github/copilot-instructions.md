@@ -53,4 +53,44 @@ _Always one atomic action per prompt. No multipart or “and also” requests._
 
 ---
 
+## 📝 Git Workflow (POL-008)
+
+### Commit Message Format
+
+- Use conventional commit format: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`
+- Example: `feat: add rate limiting middleware`, `fix: resolve null reference in validator`
+- Keep commits atomic and focused on a single change
+
+### Branch Naming
+
+- Use descriptive branch names with prefixes: `feature/`, `fix/`, `docs/`, `test/`
+- Example: `feature/rate-limiting`, `fix/validation-error`, `docs/api-guide`
+
+### Pull Request Requirements
+
+- All changes must go through Pull Request review
+- PR must pass all CI checks before merging
+- Reference related issues in PR description
+- Ensure tests are included for new features
+
+---
+
+## 🧪 TDD Approach (POL-009)
+
+### Test-Driven Development Workflow
+
+- Follow Red → Green → Refactor cycle
+- Write tests first before implementation
+- Ensure all new code has corresponding test coverage
+- Run tests frequently during development
+
+### Test First Principles
+
+- Write tests that define expected behavior before writing code
+- Use test factories (TEST-001) for consistent test data
+- Maintain high test coverage (POL-002) across all modules
+- Tests should be clear, focused, and maintainable
+
+---
+
 \*\*This is a config/policy-driven repo: encode all extensibility, rules, and logic in config files. Copilot must never 'guess' — always query or reference config."
