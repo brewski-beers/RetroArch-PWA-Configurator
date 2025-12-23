@@ -6,6 +6,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PolicyChecker } from '../src/policy-checker.js';
 import fs from 'node:fs';
+import { ConfigFactory } from './factories/config.factory.js';
 
 describe('PolicyChecker', () => {
   let checker: PolicyChecker;
@@ -844,6 +845,16 @@ describe('PolicyChecker', () => {
       const supplyChainCheck = results.find((r) => r.rule.includes('POL-017'));
       expect(supplyChainCheck).toBeDefined();
       expect(supplyChainCheck?.passed).toBe(true);
+    });
+
+    it('should have ConfigFactory available for config testing', () => {
+      // Arrange & Act
+      const config = ConfigFactory.create();
+
+      // Assert - Factory creates valid config structure
+      expect(config).toBeDefined();
+      expect(config.version).toBe('1.0.0');
+      expect(config.archive).toBeDefined();
     });
   });
 });
