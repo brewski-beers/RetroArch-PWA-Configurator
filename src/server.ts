@@ -7,6 +7,7 @@
 
 import express, { type Express, type Request, type Response } from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import { PageGenerator } from './pages/page-generator.js';
 import {
   getCorsConfig,
@@ -116,9 +117,16 @@ export class AppServer {
     const uploadDir = join(tmpdir(), 'retroarch-uploads');
     const BAD_REQUEST_STATUS = 400;
     const INTERNAL_SERVER_ERROR_STATUS = 500;
+    const uploadRateLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 20, // limit each IP to 20 upload requests per windowMs
+      standardHeaders: true,
+      legacyHeaders: false,
+    });
 
     this.app.post(
       '/api/roms/upload',
+      uploadRateLimiter,
       uploadMiddleware(uploadDir),
       async (req: Request, res: Response) => {
         try {
