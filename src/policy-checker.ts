@@ -8,6 +8,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pagesConfig } from '../config/pages.config.js';
 import { PageGenerator } from './pages/page-generator.js';
+// Using config-first approach via direct file inspection to avoid import resolution issues in tests
+
+// Simple per-file thresholds (YAGNI-compliant constants)
+const MIN_FACTORY_USAGE_PER_TEST = 1;
+const MIN_TESTID_USAGE_PER_E2E = 1;
 
 export class PolicyChecker {
   /**
@@ -50,6 +55,87 @@ export class PolicyChecker {
       return {
         passed: false,
         message: `Error checking policy enforcement integrity: ${error}`,
+      };
+    }
+  }
+
+  /**
+   * TEST-000: Testing Policy Enforcement Integrity
+   * Validates that testing policies exist and TEST-000 is enabled
+   */
+  checkTestingPolicyEnforcementIntegrity(): {
+    passed: boolean;
+    message: string;
+  } {
+    try {
+      const testPolicyPath = path.join(
+        process.cwd(),
+        'tests',
+        'config',
+        'test-policy.config.ts'
+      );
+      const content = fs.readFileSync(testPolicyPath, 'utf-8');
+      const hasId =
+        content.includes("id: 'TEST-000'") ||
+        content.includes('id: "TEST-000"');
+      const enabledTrue = /id:\s*['"]TEST-000['"][\s\S]*?enabled:\s*true/.test(
+        content
+      );
+
+      if (!hasId) {
+        return {
+          passed: false,
+          message: 'TEST-000 not found in testing policies',
+        };
+      }
+      if (!enabledTrue) {
+        return { passed: false, message: 'TEST-000 exists but is not enabled' };
+      }
+      return {
+        passed: true,
+        message: 'Testing policy enforcement integrity validated',
+      };
+    } catch (error) {
+      return {
+        passed: false,
+        message: `Error validating testing policies: ${error instanceof Error ? error.message : String(error)}`,
+      };
+    }
+  }
+
+  /**
+   * E2E-000: E2E Policy Enforcement Integrity
+   * Validates that E2E policies exist and E2E-000 is enabled
+   */
+  checkE2EPolicyEnforcementIntegrity(): { passed: boolean; message: string } {
+    try {
+      const e2ePolicyPath = path.join(
+        process.cwd(),
+        'e2e',
+        'config',
+        'e2e-policy.config.ts'
+      );
+      const content = fs.readFileSync(e2ePolicyPath, 'utf-8');
+      const hasId =
+        content.includes("id: 'E2E-000'") || content.includes('id: "E2E-000"');
+      const enabledTrue = /id:\s*['"]E2E-000['"][\s\S]*?enabled:\s*true/.test(
+        content
+      );
+
+      if (!hasId) {
+        return { passed: false, message: 'E2E-000 not found in E2E policies' };
+      }
+      if (!enabledTrue) {
+        return { passed: false, message: 'E2E-000 exists but is not enabled' };
+      }
+      return {
+        passed: true,
+        message: 'E2E policy enforcement integrity validated',
+      };
+    } catch (error) {
+      return {
+        passed: false,
+        message: `Error validating E2E policies: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
   }
@@ -231,6 +317,145 @@ export class PolicyChecker {
       return {
         passed: false,
         message: `Error checking test ID attributes: ${error}`,
+      };
+    }
+  }
+
+  /**
+   * TEST-001: Test Factory Usage
+   * Ensures unit tests leverage factories to avoid magic values (TEST-001, TEST-005)
+   */
+  checkTestFactoryUsage(): { passed: boolean; message: string } {
+    try {
+      const testsDir = path.join(process.cwd(), 'tests');
+      const factoriesDir = path.join(testsDir, 'factories');
+
+      if (!fs.existsSync(testsDir)) {
+        return { passed: false, message: 'Tests directory not found' };
+      }
+
+      if (!fs.existsSync(factoriesDir)) {
+        return {
+          passed: false,
+          message: 'Factories directory not found (tests/factories)',
+        };
+      }
+
+      const testFiles = fs
+        .readdirSync(testsDir)
+        .filter((f) => f.endsWith('.test.ts'));
+
+      if (testFiles.length === 0) {
+        return { passed: false, message: 'No test files to analyze' };
+      }
+
+      let factoryUsageCount = 0;
+      const missing: string[] = [];
+
+      for (const file of testFiles) {
+        const filePath = path.join(testsDir, file);
+        const content = fs.readFileSync(filePath, 'utf-8');
+        const importMatches =
+          content.match(/from\s+['"][^'"]*factories[^'"]*['"];?/g) || [];
+        const classMatches =
+          content.match(/PageConfigFactory|PipelineFactory/g) || [];
+        const totalOccurrences = importMatches.length + classMatches.length;
+
+        if (totalOccurrences >= MIN_FACTORY_USAGE_PER_TEST) {
+          factoryUsageCount += 1;
+        } else {
+          missing.push(file);
+        }
+      }
+
+      if (factoryUsageCount === 0) {
+        return {
+          passed: false,
+          message: 'No test files use factories (ensure TEST-001 compliance)',
+        };
+      }
+
+      if (missing.length === 0) {
+        return {
+          passed: true,
+          message: `Factory usage found in ${factoryUsageCount}/${testFiles.length} test file(s)`,
+        };
+      }
+
+      // Stricter per-file enforcement: fail when any test file lacks factory usage
+      return {
+        passed: false,
+        message: `Factory usage missing in ${missing.length} file(s): ${missing.join(', ')}`,
+      };
+    } catch (error) {
+      return {
+        passed: false,
+        message: `Error checking test factory usage: ${error instanceof Error ? error.message : String(error)}`,
+      };
+    }
+  }
+
+  /**
+   * E2E-001: Use Test IDs in E2E
+   * Ensures Playwright tests use getByTestId selectors rather than CSS locators
+   */
+  checkE2ETestIdUsage(): { passed: boolean; message: string } {
+    try {
+      const e2eDir = path.join(process.cwd(), 'e2e', 'tests');
+
+      if (!fs.existsSync(e2eDir)) {
+        return {
+          passed: false,
+          message: 'E2E tests directory not found (e2e/tests)',
+        };
+      }
+
+      const e2eFiles = fs
+        .readdirSync(e2eDir)
+        .filter((f) => f.endsWith('.spec.ts'));
+
+      if (e2eFiles.length === 0) {
+        return { passed: false, message: 'No E2E spec files found' };
+      }
+
+      const missing: string[] = [];
+      let usageCount = 0;
+
+      for (const file of e2eFiles) {
+        const filePath = path.join(e2eDir, file);
+        const content = fs.readFileSync(filePath, 'utf-8');
+        const matches = content.match(/getByTestId\s*\(/g) || [];
+        const occurrences = matches.length;
+        if (occurrences >= MIN_TESTID_USAGE_PER_E2E) {
+          usageCount += 1;
+        } else {
+          missing.push(file);
+        }
+      }
+
+      if (usageCount === 0) {
+        return {
+          passed: false,
+          message: 'No E2E tests use getByTestId (ensure E2E-001 compliance)',
+        };
+      }
+
+      if (missing.length === 0) {
+        return {
+          passed: true,
+          message: `getByTestId used in all ${e2eFiles.length} E2E spec file(s)`,
+        };
+      }
+
+      // Stricter per-file enforcement: fail when any E2E spec lacks testId usage
+      return {
+        passed: false,
+        message: `getByTestId missing in ${missing.length} file(s): ${missing.join(', ')}`,
+      };
+    } catch (error) {
+      return {
+        passed: false,
+        message: `Error checking E2E testId usage: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
   }
@@ -1050,6 +1275,20 @@ export class PolicyChecker {
       ...integrityCheck,
     });
 
+    // Check TEST-000: Testing Policy Enforcement Integrity
+    const testMetaCheck = this.checkTestingPolicyEnforcementIntegrity();
+    results.push({
+      rule: 'TEST-000: Testing Policy Enforcement Integrity',
+      ...testMetaCheck,
+    });
+
+    // Check E2E-000: E2E Policy Enforcement Integrity
+    const e2eMetaCheck = this.checkE2EPolicyEnforcementIntegrity();
+    results.push({
+      rule: 'E2E-000: E2E Policy Enforcement Integrity',
+      ...e2eMetaCheck,
+    });
+
     // Check POL-001: TypeScript Strict Mode
     const strictModeCheck = this.checkStrictMode();
     results.push({
@@ -1076,6 +1315,20 @@ export class PolicyChecker {
     results.push({
       rule: 'POL-004: Test ID Attributes',
       ...testIdCheck,
+    });
+
+    // Check TEST-001: Test Factory Usage
+    const testFactoryCheck = this.checkTestFactoryUsage();
+    results.push({
+      rule: 'TEST-001: Test Factory Usage',
+      ...testFactoryCheck,
+    });
+
+    // Check E2E-001: Use Test IDs in E2E
+    const e2eTestIdUsageCheck = this.checkE2ETestIdUsage();
+    results.push({
+      rule: 'E2E-001: Use Test IDs',
+      ...e2eTestIdUsageCheck,
     });
 
     // Check POL-005: ESLint Code Quality
@@ -1210,6 +1463,18 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       const color = result.passed ? '\x1b[32m' : '\x1b[31m';
       console.log(`${color}${icon}\x1b[0m ${result.rule}`);
       console.log(`  ${result.message}\n`);
+
+      // Concise remediation tips for common failures
+      if (!result.passed && result.rule.includes('TEST-001')) {
+        console.log(
+          '  Tip: import from tests/factories and build test data via factories.'
+        );
+      }
+      if (!result.passed && result.rule.includes('E2E-001')) {
+        console.log(
+          "  Tip: prefer page.getByTestId('...') over CSS selectors."
+        );
+      }
     }
   );
 

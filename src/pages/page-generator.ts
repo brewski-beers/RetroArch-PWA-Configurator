@@ -15,6 +15,15 @@ export class PageGenerator {
    * Generate HTML for a single component
    */
   private generateComponent(component: PageComponent): string {
+    // Defensive: Validate component has required fields
+    if (
+      component.testId === undefined ||
+      component.testId === null ||
+      component.testId === ''
+    ) {
+      throw new Error('Component testId is required for POL-004 compliance');
+    }
+
     switch (component.type) {
       case 'header':
         return `    <header id="${component.id}" data-testid="${component.testId}">
@@ -37,6 +46,27 @@ export class PageGenerator {
    * Generate complete HTML page from configuration
    */
   generatePage(pageConfig: PageConfig): string {
+    // Defensive: Validate input
+    if (pageConfig === undefined || pageConfig === null) {
+      throw new Error('Invalid input: page config is required');
+    }
+
+    if (
+      pageConfig.id === undefined ||
+      pageConfig.id === null ||
+      pageConfig.id.trim() === ''
+    ) {
+      throw new Error('Invalid input: page id is required');
+    }
+
+    if (
+      pageConfig.title === undefined ||
+      pageConfig.title === null ||
+      pageConfig.title.trim() === ''
+    ) {
+      throw new Error('Invalid input: page title is required');
+    }
+
     const components = pageConfig.components
       .map((component: PageComponent) => this.generateComponent(component))
       .join('\n');

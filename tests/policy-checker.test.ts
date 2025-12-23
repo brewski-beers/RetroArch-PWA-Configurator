@@ -652,8 +652,8 @@ describe('PolicyChecker', () => {
   describe('runAllChecks', () => {
     it('should run all policy checks', async () => {
       const { results } = await checker.runAllChecks();
-
-      expect(results.length).toBe(21); // POL-000 through POL-020
+      // POL-000..POL-020 plus TEST-000, E2E-000, TEST-001, E2E-001
+      expect(results.length).toBe(25);
       expect(results.some((r) => r.rule.includes('POL-000'))).toBe(true);
       expect(results.some((r) => r.rule.includes('POL-001'))).toBe(true);
       expect(results.some((r) => r.rule.includes('POL-002'))).toBe(true);
@@ -675,6 +675,10 @@ describe('PolicyChecker', () => {
       expect(results.some((r) => r.rule.includes('POL-018'))).toBe(true);
       expect(results.some((r) => r.rule.includes('POL-019'))).toBe(true);
       expect(results.some((r) => r.rule.includes('POL-020'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('TEST-000'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('E2E-000'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('TEST-001'))).toBe(true);
+      expect(results.some((r) => r.rule.includes('E2E-001'))).toBe(true);
     });
 
     it('should return overall passed status', async () => {

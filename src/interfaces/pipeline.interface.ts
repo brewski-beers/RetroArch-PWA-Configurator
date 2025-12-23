@@ -110,6 +110,7 @@ export interface ManifestEntry {
   platform: string;
   hash: string;
   size: number;
+  extension: string;
   archivedAt: string;
   metadata?: Record<string, unknown>;
 }

@@ -27,6 +27,7 @@
     "test:coverage:summary": "vitest run --coverage --reporter=verbose 2>&1 | grep -A 30 'Coverage report'",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
+    "test:gui": "playwright test --ui",
     "test:e2e": "playwright test",
     "type-check": "tsc --noEmit",
     "demo:ingest": "tsx examples/ingest-rom.ts",

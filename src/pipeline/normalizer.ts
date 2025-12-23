@@ -22,6 +22,38 @@ export class Normalizer implements INormalizer {
    * Applies naming patterns to ROM
    */
   async applyNamingPattern(rom: ROMFile): Promise<PhaseResult<ROMFile>> {
+    // Defensive: Validate input
+    if (rom === undefined || rom === null) {
+      return Promise.resolve({
+        success: false,
+        error: 'Invalid input: ROM object is null or undefined',
+      });
+    }
+
+    if (
+      rom.filename === undefined ||
+      rom.filename === null ||
+      rom.filename.trim() === ''
+    ) {
+      return Promise.resolve({
+        success: false,
+        error: 'Invalid input: filename is required',
+      });
+    }
+
+    if (
+      rom.platform === undefined ||
+      rom.platform === null ||
+      rom.extension === undefined ||
+      rom.extension === null
+    ) {
+      return Promise.resolve({
+        success: false,
+        error:
+          'Invalid input: ROM missing required fields (platform, extension)',
+      });
+    }
+
     // TODO: Implement in Phase D
     return Promise.resolve({
       success: true,
@@ -37,6 +69,21 @@ export class Normalizer implements INormalizer {
    * Converts to CHD format (optional)
    */
   async convertToCHD(rom: ROMFile): Promise<PhaseResult<ROMFile>> {
+    // Defensive: Validate input
+    if (rom === undefined || rom === null) {
+      return Promise.resolve({
+        success: false,
+        error: 'Invalid input: ROM object is null or undefined',
+      });
+    }
+
+    if (rom.platform === undefined || rom.platform === null) {
+      return Promise.resolve({
+        success: false,
+        error: 'Invalid input: ROM platform is required for CHD conversion',
+      });
+    }
+
     // TODO: Implement in Phase D
     if (!this.config.pipeline.enableCHDConversion) {
       return Promise.resolve({
@@ -65,6 +112,46 @@ export class Normalizer implements INormalizer {
   async generateMetadata(
     rom: ROMFile
   ): Promise<PhaseResult<Record<string, unknown>>> {
+    // Defensive: Validate input
+    if (rom === undefined || rom === null) {
+      return Promise.resolve({
+        success: false,
+        error: 'Invalid input: ROM object is null or undefined',
+      });
+    }
+
+    if (
+      rom.platform === undefined ||
+      rom.platform === null ||
+      rom.filename === undefined ||
+      rom.filename === null ||
+      rom.size === undefined
+    ) {
+      return Promise.resolve({
+        success: false,
+        error:
+          'Invalid input: ROM missing required fields (platform, filename, size)',
+      });
+    }
+
+    if (rom.size < 0) {
+      return Promise.resolve({
+        success: false,
+        error: 'Invalid input: ROM size cannot be negative',
+      });
+    }
+
+    if (
+      rom.extension === undefined ||
+      rom.extension === null ||
+      rom.extension.trim() === ''
+    ) {
+      return Promise.resolve({
+        success: false,
+        error: 'Invalid input: ROM extension is required',
+      });
+    }
+
     // TODO: Implement in Phase D
     const metadata = {
       platform: rom.platform,

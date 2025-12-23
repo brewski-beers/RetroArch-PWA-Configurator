@@ -2,6 +2,7 @@
  * Tests for Classifier Phase
  * Following TEST-002 (Single Responsibility per test)
  * Following TEST-004 (Arrange-Act-Assert pattern)
+ * Covering error paths for POL-002 (Test Coverage)
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -10,6 +11,7 @@ import {
   PlatformConfigFactory,
   ROMFileFactory,
 } from './factories/pipeline.factory.js';
+import type { ROMFile } from '../src/interfaces/pipeline.interface.js';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -103,6 +105,55 @@ describe('Classifier', () => {
       expect(result2.data?.id).toBeDefined();
       expect(result1.data?.id).not.toBe(result2.data?.id);
     });
+
+    it('should handle null/empty file path', async () => {
+      // Act
+      const result = await classifier.classify('');
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should handle file path with no extension', async () => {
+      // Arrange
+      const testFile = join(testDir, 'test-game-no-ext');
+      await writeFile(testFile, 'test-content');
+
+      // Act
+      const result = await classifier.classify(testFile);
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Unknown file extension');
+    });
+
+    it('should handle directory instead of file', async () => {
+      // Arrange
+      const dirPath = join(testDir, 'test-directory');
+      await mkdir(dirPath, { recursive: true });
+
+      // Act
+      const result = await classifier.classify(dirPath);
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should handle file with multiple extensions', async () => {
+      // Arrange
+      const testFile = join(testDir, 'test-game.tar.nes');
+      await writeFile(testFile, 'test-content');
+
+      // Act
+      const result = await classifier.classify(testFile);
+
+      // Assert - Should use last extension (.nes)
+      expect(result.success).toBe(true);
+      expect(result.data?.platform).toBe('nes');
+      expect(result.data?.extension).toBe('.nes');
+    });
   });
 
   describe('moveToValidation', () => {
@@ -130,6 +181,41 @@ describe('Classifier', () => {
 
       // Assert
       expect(result.metadata?.['movedAt']).toBeDefined();
+    });
+
+    it('should handle null ROM input', () => {
+      // Act
+      const result = classifier.moveToValidation(null as unknown as ROMFile);
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    it('should handle ROM with missing platform', () => {
+      // Arrange
+      const rom = ROMFileFactory.create();
+      const invalidRom = { ...rom, platform: '' };
+
+      // Act
+      const result = classifier.moveToValidation(invalidRom);
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('platform');
+    });
+
+    it('should handle ROM with missing filename', () => {
+      // Arrange
+      const rom = ROMFileFactory.create();
+      const invalidRom = { ...rom, filename: '' };
+
+      // Act
+      const result = classifier.moveToValidation(invalidRom);
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('filename');
     });
   });
 });

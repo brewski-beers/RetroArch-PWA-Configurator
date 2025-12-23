@@ -75,6 +75,7 @@ export class ManifestEntryFactory {
       platform: 'nes',
       hash: 'abc123def456',
       size: 1024,
+      extension: '.nes',
       archivedAt: new Date().toISOString(),
       ...overrides,
     };
@@ -90,6 +91,7 @@ export class ManifestEntryFactory {
       platform: rom.platform ?? 'unknown',
       hash: rom.hash ?? 'no-hash',
       size: rom.size,
+      extension: rom.extension,
     });
   }
 }

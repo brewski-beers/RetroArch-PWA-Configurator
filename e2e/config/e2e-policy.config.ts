@@ -34,6 +34,15 @@ export const e2ePolicyConfig: E2EPolicyConfig = {
   category: 'e2e',
   rules: [
     {
+      id: 'E2E-000',
+      name: 'E2E Policy Enforcement Integrity',
+      description:
+        'Meta-policy ensuring E2E policies are defined, enabled, and enforced across the test suite.',
+      enabled: true,
+      severity: 'critical',
+      category: 'e2e',
+    },
+    {
       id: 'E2E-001',
       name: 'Use Test IDs',
       description:
