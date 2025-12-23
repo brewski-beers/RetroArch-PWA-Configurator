@@ -15,6 +15,14 @@ export interface BasePolicyRule {
   enabled: boolean;
   severity: 'critical' | 'high' | 'medium' | 'low';
   category: 'application' | 'testing' | 'e2e';
+  /** Execution priority (lower = earlier, optional) */
+  priority?: number;
+  /** Enforcement details */
+  enforcement?: {
+    automated: boolean;
+    manual: boolean;
+    blocking: boolean;
+  };
 }
 
 /**

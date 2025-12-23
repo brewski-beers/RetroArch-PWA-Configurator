@@ -134,9 +134,30 @@ export interface PolicyConfig extends BasePolicyConfig {
 }
 
 export const policyConfig: PolicyConfig = {
-  version: '1.0.0',
+  version: '1.2.0',
   category: 'application',
   rules: [
+    {
+      id: 'POL-000',
+      name: 'Policy Enforcement Integrity',
+      description:
+        'Meta-policy ensuring all defined policies are actually enforced. ' +
+        'Validates: (1) PolicyChecker has methods for all policies. ' +
+        '(2) runAllChecks() calls all policy methods. ' +
+        '(3) Tests cover all policy checks. ' +
+        '(4) No policies exist without enforcement mechanism. ' +
+        'Prevents policy drift where rules are documented but never validated. ' +
+        'Enforcement: Pre-deployment check verifies policy coverage.',
+      enabled: true,
+      severity: 'critical',
+      category: 'application',
+      priority: 0,
+      enforcement: {
+        automated: true,
+        manual: false,
+        blocking: true,
+      },
+    },
     {
       id: 'POL-001',
       name: 'TypeScript Strict Mode',
@@ -301,6 +322,70 @@ export const policyConfig: PolicyConfig = {
       enabled: true,
       severity: 'critical',
       category: 'application',
+    },
+    {
+      id: 'POL-018',
+      name: "YAGNI Principle (You Ain't Gonna Need It)",
+      description:
+        'Build only what is needed NOW. Prevent over-engineering by requiring justification for: ' +
+        '(1) New abstractions - services, handlers, managers, factories. ' +
+        '(2) New dependencies - verify standard library cannot handle it. ' +
+        '(3) Complex patterns - prefer simple solutions. ' +
+        'Rule of Three: Only create abstractions when duplicated in 3+ places. ' +
+        'Future-proofing is banned - build for today, refactor when tomorrow comes. ' +
+        'Config-First: Try config export before writing code. ' +
+        'Enforcement: Pre-commit hook checks new abstractions require YAGNI justification comment.',
+      enabled: true,
+      severity: 'critical',
+      category: 'application',
+      priority: 1,
+      enforcement: {
+        automated: true,
+        manual: false,
+        blocking: true,
+      },
+    },
+    {
+      id: 'POL-019',
+      name: 'KISS Principle (Keep It Simple, Stupid)',
+      description:
+        'Prefer simple solutions over complex ones. Complexity is a last resort. ' +
+        'Metrics: (1) Cyclomatic complexity max 10 per function. ' +
+        '(2) Dependency depth max 3 levels. (3) Abstraction layers max 2. ' +
+        'Explicit over clever - readable beats concise. ' +
+        'Standard library first - use built-ins before adding dependencies. ' +
+        'One-liner check: If solvable in 1 line, do it. ' +
+        'Enforcement: Code review (subjective evaluation).',
+      enabled: true,
+      severity: 'high',
+      category: 'application',
+      priority: 2,
+      enforcement: {
+        automated: false,
+        manual: true,
+        blocking: false,
+      },
+    },
+    {
+      id: 'POL-020',
+      name: 'Policy Test Coverage',
+      description:
+        'Every policy must have automated test coverage. Meta-policy ensuring policy enforcement is testable. ' +
+        'Requirements: (1) Each POL-* policy must have corresponding test in policy-checker.test.ts. ' +
+        '(2) PolicyChecker.runAllChecks() must validate all enabled policies. ' +
+        '(3) Programmatic check detects missing policy tests. ' +
+        '(4) TEST-* and E2E-* policies tested in their respective test suites. ' +
+        'Prevents "untested enforcers" - policies that exist but are never validated. ' +
+        'Enforcement: CI/CD runs policy coverage check before deployment.',
+      enabled: true,
+      severity: 'critical',
+      category: 'application',
+      priority: 0,
+      enforcement: {
+        automated: true,
+        manual: false,
+        blocking: true,
+      },
     },
   ],
   compliance: {
