@@ -25,6 +25,15 @@ export class Classifier implements IClassifier {
    */
   async classify(filePath: string): Promise<PhaseResult<ROMFile>> {
     try {
+      // Validate that the file path doesn't contain path traversal attempts
+      const normalizedPath = basename(filePath);
+      if (normalizedPath !== basename(filePath) || filePath.includes('..')) {
+        return {
+          success: false,
+          error: 'Invalid file path',
+        };
+      }
+
       const extension = extname(filePath).toLowerCase();
       const filename = basename(filePath);
       const stats = await stat(filePath);

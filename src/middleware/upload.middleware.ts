@@ -6,7 +6,7 @@
 
 import type { Request, Response, NextFunction } from 'express';
 import { writeFile, mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, basename } from 'node:path';
 import { existsSync } from 'node:fs';
 
 export interface UploadedFile {
@@ -128,8 +128,14 @@ async function parseMultipartData(
     }
 
     const originalname = filenameMatch[1] ?? 'unknown';
+    // Sanitize filename to prevent path traversal attacks
+    // Remove any path separators and keep only the base filename
+    const sanitizedName = basename(originalname).replace(
+      /[^a-zA-Z0-9._-]/g,
+      '_'
+    );
     const timestamp = Date.now();
-    const filename = `${timestamp}-${originalname}`;
+    const filename = `${timestamp}-${sanitizedName}`;
     const filepath = join(uploadDir, filename);
 
     // Extract content type
