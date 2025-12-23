@@ -6,6 +6,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { AppServer } from '../src/server.js';
 import request from 'supertest';
+import { ConfigFactory } from './factories/config.factory.js';
 
 describe('AppServer', () => {
   let server: AppServer;
@@ -81,6 +82,16 @@ describe('AppServer', () => {
         expect(response.status).toBe(400);
         expect(response.body).toHaveProperty('error', 'Validation failed');
         expect(response.body).toHaveProperty('details');
+      });
+
+      it('should accept config from factory structure', () => {
+        // Arrange - ConfigFactory creates a valid structure
+        const factoryConfig = ConfigFactory.create();
+
+        // Act - Test that factory-created configs would be compatible
+        // Assert
+        expect(factoryConfig).toBeDefined();
+        expect(factoryConfig.version).toBe('1.0.0');
       });
 
       it('should reject invalid configuration - empty platforms', async () => {

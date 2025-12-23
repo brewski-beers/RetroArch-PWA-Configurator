@@ -12,6 +12,7 @@ import { coLocatedTemplate } from '../src/config/config-templates.js';
 import { writeFile, mkdir, rm } from 'fs/promises';
 import { join } from 'path';
 import type { UserConfig } from '../src/interfaces/user-config.interface.js';
+import { ConfigFactory } from './factories/config.factory.js';
 
 describe('ConfigLoader', () => {
   let loader: ConfigLoader;
@@ -93,9 +94,7 @@ describe('ConfigLoader', () => {
 
     it('should provide validation errors in result', async () => {
       // Arrange
-      const invalidConfig: UserConfig = {
-        version: '', // Missing
-        name: '', // Missing
+      const invalidConfig = ConfigFactory.invalid({
         colocate: false,
         archive: {
           root: { path: '', description: 'Root', required: true },
@@ -103,20 +102,20 @@ describe('ConfigLoader', () => {
           manifests: { path: '', description: 'Manifests', required: true },
           bios: { path: '', description: 'BIOS', required: false },
           metadata: { path: '', description: 'Metadata', required: false },
-        },
+        } as UserConfig['archive'],
         sync: {
           root: { path: '', description: 'Root', required: true },
           content: { path: '', description: 'Content', required: true },
           playlists: { path: '', description: 'Playlists', required: true },
           thumbnails: { path: '', description: 'Thumbnails', required: false },
           saveStates: { path: '', description: 'States', required: false },
-        },
+        } as UserConfig['sync'],
         workspace: {
           processing: { path: '', description: 'Processing', required: true },
           logs: { path: '', description: 'Logs', required: true },
           backups: { path: '', description: 'Backups', required: false },
-        },
-      };
+        } as UserConfig['workspace'],
+      }) as UserConfig;
       await writeFile(testConfigPath, JSON.stringify(invalidConfig));
 
       // Act

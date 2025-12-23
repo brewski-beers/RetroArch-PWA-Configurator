@@ -8,6 +8,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { ConfigValidator } from '../src/config/config-validator.js';
 import { coLocatedTemplate } from '../src/config/config-templates.js';
 import type { UserConfig } from '../src/interfaces/user-config.interface.js';
+import { ConfigFactory } from './factories/config.factory.js';
 
 describe('ConfigValidator', () => {
   let validator: ConfigValidator;
@@ -266,6 +267,18 @@ describe('ConfigValidator', () => {
           },
         },
       };
+
+      // Act
+      const result = validator.validate(config);
+
+      // Assert
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should validate config created by factory', () => {
+      // Arrange
+      const config = ConfigFactory.create();
 
       // Act
       const result = validator.validate(config);

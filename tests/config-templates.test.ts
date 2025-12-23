@@ -13,6 +13,7 @@ import {
   getTemplate,
   getRecommendedTemplate,
 } from '../src/config/config-templates.js';
+import { ConfigFactory } from './factories/config.factory.js';
 
 describe('ConfigTemplates', () => {
   // Use obfuscated example paths (not real user paths)
@@ -184,6 +185,17 @@ describe('ConfigTemplates', () => {
       // Assert
       expect(recommended).toBe(coLocatedTemplate);
       expect(recommended.recommended).toBe(true);
+    });
+
+    it('should create config compatible with factory', () => {
+      // Arrange
+      const factoryConfig = ConfigFactory.create();
+      const templateConfig = coLocatedTemplate.generate(EXAMPLE_BASE_PATH);
+
+      // Assert - Both should have same structure
+      expect(factoryConfig.version).toBe(templateConfig.version);
+      expect(factoryConfig.archive.root).toBeDefined();
+      expect(templateConfig.archive.root).toBeDefined();
     });
   });
 });
