@@ -10,7 +10,7 @@ import type {
   ROMFile,
 } from '../interfaces/pipeline.interface.js';
 import type { PlatformConfig } from '../interfaces/platform-config.interface.js';
-import { basename, extname } from 'node:path';
+import { basename, extname, resolve } from 'node:path';
 import { stat } from 'node:fs/promises';
 
 export class Classifier implements IClassifier {
@@ -25,18 +25,20 @@ export class Classifier implements IClassifier {
    */
   async classify(filePath: string): Promise<PhaseResult<ROMFile>> {
     try {
-      // Validate that the file path doesn't contain path traversal attempts
-      const normalizedPath = basename(filePath);
-      if (normalizedPath !== basename(filePath) || filePath.includes('..')) {
+      // Security: Resolve to absolute path and validate
+      const resolvedPath = resolve(filePath);
+      const filename = basename(resolvedPath);
+
+      // Reject paths with traversal attempts or invalid characters
+      if (filePath.includes('..') || filename !== basename(filePath)) {
         return {
           success: false,
           error: 'Invalid file path',
         };
       }
 
-      const extension = extname(filePath).toLowerCase();
-      const filename = basename(filePath);
-      const stats = await stat(filePath);
+      const extension = extname(filename).toLowerCase();
+      const stats = await stat(resolvedPath);
 
       // Find platform by extension
       const platform = this.config.platforms.find((p) =>
@@ -53,7 +55,7 @@ export class Classifier implements IClassifier {
       const rom: ROMFile = {
         id: this.generateROMId(filename),
         filename,
-        path: filePath,
+        path: resolvedPath,
         platform: platform.id,
         extension,
         size: stats.size,
