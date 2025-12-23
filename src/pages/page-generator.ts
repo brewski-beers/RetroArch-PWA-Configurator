@@ -220,7 +220,7 @@ ${formScript}
   private generateFormScript(): string {
     return `    <script>
       document.addEventListener('DOMContentLoaded', function() {
-        const form = document.querySelector('form[data-testid="ingest-form"]');
+        const form = document.getElementById('ingest-form');
         if (!form) return;
 
         form.addEventListener('submit', async function(e) {
