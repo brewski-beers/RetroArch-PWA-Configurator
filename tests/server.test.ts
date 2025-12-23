@@ -245,6 +245,32 @@ describe('AppServer', () => {
         expect([200, 400, 413, 500]).toContain(response.status);
       });
     });
+
+    describe('Rate Limiting', () => {
+      it('should include rate limit headers on upload endpoint', async () => {
+        const response = await request(server.getApp())
+          .post('/api/roms/upload')
+          .send({});
+
+        // Rate limit headers should be present
+        expect(response.headers['ratelimit-limit']).toBeDefined();
+        expect(response.headers['ratelimit-remaining']).toBeDefined();
+      });
+
+      it('should allow requests within rate limit', async () => {
+        // Make a few requests (well within the 20/15min limit)
+        const requests = Array.from({ length: 3 }, () =>
+          request(server.getApp()).post('/api/roms/upload').send({})
+        );
+
+        const responses = await Promise.all(requests);
+
+        // All requests should succeed (even though they'll fail validation)
+        responses.forEach((response) => {
+          expect(response.status).not.toBe(429); // Not rate limited
+        });
+      });
+    });
   });
 
   describe('Error Handling', () => {
