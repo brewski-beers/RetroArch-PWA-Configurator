@@ -12,7 +12,7 @@
 - **Default to non-premium models.** Escalate to premium only on explicit, justified request for multi-file/advanced reasoning.
 - **Use config and policy as source of truth.** Query `config/*.config.ts` for rules/policies (not this file).
 - **Always reference specific policy IDs in output and code suggestions (e.g. POL-018, TEST-001).**
-- **Never generate code outside the provided context/snippet unless directed. Do not write new abstraction layers unless justified by YAGNI/config-first.**
+- **Follow YAGNI (POL-018) and KISS (POL-019) principles:** Don't build what you don't need. Simple solutions beat complex ones. Never generate code outside the provided context/snippet unless directed. Do not write new abstraction layers unless justified by YAGNI/config-first.
 
 ---
 
@@ -44,4 +44,4 @@ _Always one atomic action per prompt. No multipart or “and also” requests._
 
 ---
 
-**This is a config/policy-driven repo: encode all extensibility, rules, and logic in config files. Copilot must never 'guess' — always query or reference config."
+\*\*This is a config/policy-driven repo: encode all extensibility, rules, and logic in config files. Copilot must never 'guess' — always query or reference config."
