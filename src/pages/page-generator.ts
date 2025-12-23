@@ -65,8 +65,7 @@ export class PageGenerator {
           <input 
             type="${field.type}" 
             name="${field.name}" 
-            id="${field.id}" 
-            data-testid="${field.testId}"${acceptAttr}${requiredAttr}
+            id="${field.id}"${acceptAttr}${requiredAttr}
           />
         </div>`;
       })
@@ -74,7 +73,7 @@ export class PageGenerator {
 
     const submitButtonHtml =
       submitButton !== undefined
-        ? `        <button type="submit" data-testid="${submitButton.testId}">${submitButton.text}</button>`
+        ? `        <button type="submit">${submitButton.text}</button>`
         : '        <button type="submit">Submit</button>';
 
     const formEnctype = enctype ?? 'application/x-www-form-urlencoded';
@@ -82,7 +81,7 @@ export class PageGenerator {
     return `    <form id="${component.id}" data-testid="${component.testId}" action="${action}" method="${method}" enctype="${formEnctype}">
 ${fieldsHtml}
 ${submitButtonHtml}
-      <div id="upload-status" data-testid="upload-status"></div>
+      <div id="upload-status"></div>
     </form>`;
   }
 

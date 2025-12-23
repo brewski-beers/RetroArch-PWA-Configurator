@@ -117,12 +117,6 @@ export const pagesConfig: PageConfig[] = [
         },
       },
       {
-        type: 'content',
-        id: 'ingest-status',
-        testId: 'ingest-status',
-        content: '',
-      },
-      {
         type: 'footer',
         id: 'ingest-footer',
         testId: 'ingest-footer',
