@@ -231,7 +231,7 @@ ${formScript}
           const statusDiv = document.getElementById('upload-status');
           
           if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-            showStatus('error', 'Please select a ROM file to upload');
+            showStatus('error', 'Please select a ROM file');
             return;
           }
 
