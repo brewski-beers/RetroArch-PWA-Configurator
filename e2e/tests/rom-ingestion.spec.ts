@@ -13,7 +13,7 @@ const TEST_ROM_PATH = join(process.cwd(), 'examples', 'roms', 'demo-game.nes');
 
 test.describe('ROM Ingestion Page', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(INGEST_PAGE_URL);
+    await page.goto(INGEST_PAGE_URL, { waitUntil: 'networkidle' });
   });
 
   test('should load ROM ingestion page successfully', async ({ page }) => {
@@ -89,11 +89,14 @@ test.describe('ROM Ingestion Page', () => {
   test('should show error when no file selected', async ({ page }) => {
     // E2E-005: Error State Testing
 
+    // Wait for the form and JavaScript to be fully loaded
+    const statusDiv = page.locator('#upload-status');
+    await expect(statusDiv).toBeAttached(); // Wait for element to exist in DOM
+
     const submitButton = page.locator('button[type="submit"]');
     await submitButton.click();
 
-    // Wait for status to appear
-    const statusDiv = page.locator('#upload-status');
+    // Wait for status to become visible
     await expect(statusDiv).toBeVisible({ timeout: 5000 });
 
     // Verify error status
