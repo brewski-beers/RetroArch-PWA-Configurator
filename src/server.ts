@@ -1,8 +1,8 @@
 /**
  * Express HTTP Server
- * API server with CORS, validation, and static file serving
+ * API server with CORS, validation, rate limiting, and static file serving
  * Single responsibility: coordinate middleware and routes
- * Following POL-012 (CORS) and POL-013 (Input Validation)
+ * Following POL-012 (CORS), POL-013 (Input Validation), and POL-021 (Rate Limiting)
  */
 
 import express, { type Express, type Request, type Response } from 'express';
@@ -16,6 +16,11 @@ import {
   configValidationSchema,
 } from '../config/routes.config.js';
 import { validateRequest } from './middleware/validation.middleware.js';
+import {
+  apiRateLimiter,
+  strictApiRateLimiter,
+  contentRateLimiter,
+} from './middleware/rate-limit.middleware.js';
 import { ConfigLoader } from './config/config-loader.js';
 
 const HTTP_STATUS_INTERNAL_ERROR = 500;
@@ -100,11 +105,17 @@ export class AppServer {
    * Setup middleware stack
    * POL-012: CORS with explicit allowlist (no wildcards)
    * POL-013: JSON parsing for validation
+   * POL-021: Rate limiting for DoS protection
    */
   private setupMiddleware(): void {
     // CORS configuration (POL-012)
     const corsOptions = getCorsConfig();
     this.app.use(cors(corsOptions));
+
+    // Rate limiting for all routes (POL-021)
+    // Apply before other middleware to reject requests early
+    this.app.use('/api', apiRateLimiter);
+    this.app.use(['/content', '/content/*'], contentRateLimiter);
 
     // JSON body parsing for API endpoints
     this.app.use(express.json({ limit: '10mb' }));
@@ -138,6 +149,7 @@ export class AppServer {
   /**
    * Setup API routes from configuration
    * POL-013: All POST/PUT/PATCH routes have Zod validation
+   * POL-021: Strict rate limiting on write operations
    */
   private setupApiRoutes(): void {
     // GET /api/health - Health check endpoint
@@ -149,9 +161,10 @@ export class AppServer {
       });
     });
 
-    // POST /api/config/validate - Validate configuration (POL-013)
+    // POST /api/config/validate - Validate configuration (POL-013 + POL-021)
     this.app.post(
       '/api/config/validate',
+      strictApiRateLimiter,
       validateRequest(configValidationSchema, 'body'),
       (req: Request, res: Response) => {
         // Configuration is already validated by middleware
