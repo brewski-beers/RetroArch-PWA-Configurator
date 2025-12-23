@@ -9,6 +9,7 @@ import express, { type Express, type Request, type Response } from 'express';
 import path from 'node:path';
 import { promises as fsp } from 'node:fs';
 import cors from 'cors';
+import escapeHtml from 'escape-html';
 import { PageGenerator } from './pages/page-generator.js';
 import {
   getCorsConfig,
@@ -45,8 +46,8 @@ async function renderDirIndex(
         ? `/content/${encodeURIComponent(rel)}`
         : `/content/${encodeURIComponent(rel)}?download=1`;
       const type = e.isDirectory() ? 'dir' : 'file';
-      return `<li data-testid="content-item" data-type="${type}">
-        <a href="${href}" data-testid="content-link">${name}</a>
+      return `<li data-testid="content-item" data-type="${escapeHtml(type)}">
+        <a href="${escapeHtml(href)}" data-testid="content-link">${escapeHtml(name)}</a>
       </li>`;
     })
     .join('\n');
@@ -56,14 +57,14 @@ async function renderDirIndex(
 
   const upLink =
     parent !== null && parent !== '.'
-      ? `<a href="/content/${encodeURIComponent(parent)}" data-testid="content-up">Up</a>`
+      ? `<a href="${escapeHtml(`/content/${encodeURIComponent(parent)}`)}" data-testid="content-up">Up</a>`
       : '';
 
   return `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>ROMs Index - ${subPath || '/'}</title>
+    <title>ROMs Index - ${escapeHtml(subPath || '/')}</title>
   </head>
   <body>
     <header data-testid="content-header"><h1>ROMs Index</h1></header>

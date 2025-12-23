@@ -4,6 +4,7 @@
  * Follows SRP - single responsibility of generating pages from config
  */
 
+import escapeHtml from 'escape-html';
 import {
   pagesConfig,
   type PageConfig,
@@ -26,19 +27,19 @@ export class PageGenerator {
 
     switch (component.type) {
       case 'header':
-        return `    <header id="${component.id}" data-testid="${component.testId}">
-      <h1>${component.content}</h1>
+        return `    <header id="${escapeHtml(component.id)}" data-testid="${escapeHtml(component.testId)}">
+      <h1>${escapeHtml(component.content)}</h1>
     </header>`;
       case 'content':
-        return `    <main id="${component.id}" data-testid="${component.testId}">
-      <p>${component.content}</p>
+        return `    <main id="${escapeHtml(component.id)}" data-testid="${escapeHtml(component.testId)}">
+      <p>${escapeHtml(component.content)}</p>
     </main>`;
       case 'footer':
-        return `    <footer id="${component.id}" data-testid="${component.testId}">
-      <p>${component.content}</p>
+        return `    <footer id="${escapeHtml(component.id)}" data-testid="${escapeHtml(component.testId)}">
+      <p>${escapeHtml(component.content)}</p>
     </footer>`;
       default:
-        return `    <div id="${component.id}" data-testid="${component.testId}">${component.content}</div>`;
+        return `    <div id="${escapeHtml(component.id)}" data-testid="${escapeHtml(component.testId)}">${escapeHtml(component.content)}</div>`;
     }
   }
 
@@ -76,8 +77,8 @@ export class PageGenerator {
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="${pageConfig.description}">
-    <title>${pageConfig.title}</title>
+    <meta name="description" content="${escapeHtml(pageConfig.description)}">
+    <title>${escapeHtml(pageConfig.title)}</title>
     <style>
       body {
         font-family: system-ui, -apple-system, sans-serif;
@@ -107,7 +108,7 @@ export class PageGenerator {
       }
     </style>
   </head>
-  <body data-page-id="${pageConfig.id}">
+  <body data-page-id="${escapeHtml(pageConfig.id)}">
 ${components}
   </body>
 </html>`;
