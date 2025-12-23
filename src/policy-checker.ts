@@ -1228,7 +1228,7 @@ export class PolicyChecker {
         };
       }
 
-      // Check if runAllChecks includes all policies (22 policies now)
+      // Check if runAllChecks includes all policies (exactly 22 policies: POL-000 through POL-021)
       const policyCheckerPath = path.join(
         process.cwd(),
         'src',
@@ -1240,10 +1240,11 @@ export class PolicyChecker {
       const polReferences = policyCheckerContent.match(/POL-\d+/g) || [];
       const uniquePols = new Set(polReferences);
 
-      if (uniquePols.size < 22) {
+      const EXPECTED_POLICY_COUNT = 22;
+      if (uniquePols.size < EXPECTED_POLICY_COUNT) {
         return {
           passed: false,
-          message: `Only ${uniquePols.size}/22 policies checked in runAllChecks()`,
+          message: `Only ${uniquePols.size}/${EXPECTED_POLICY_COUNT} policies checked in runAllChecks()`,
         };
       }
 

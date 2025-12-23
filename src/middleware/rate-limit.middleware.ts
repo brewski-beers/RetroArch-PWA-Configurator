@@ -20,10 +20,8 @@ export const apiRateLimiter = rateLimit({
   },
   standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
   legacyHeaders: false, // Disable `X-RateLimit-*` headers
-  // Skip rate limiting for successful responses in non-production environments
-  skipSuccessfulRequests: false,
-  // Skip rate limiting if the function returns true
-  skip: () => false,
+  skipSuccessfulRequests: false, // Count all requests, including successful ones
+  skip: () => false, // Never skip rate limiting
 });
 
 /**
@@ -36,7 +34,8 @@ export const strictApiRateLimiter = rateLimit({
   max: 20, // Limit each IP to 20 requests per windowMs
   message: {
     error: 'Too many requests',
-    message: 'Rate limit exceeded for write operations. Please try again later.',
+    message:
+      'Rate limit exceeded for write operations. Please try again later.',
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -54,7 +53,8 @@ export const contentRateLimiter = rateLimit({
   max: 200, // Limit each IP to 200 requests per windowMs
   message: {
     error: 'Too many requests',
-    message: 'Rate limit exceeded for content browsing. Please try again later.',
+    message:
+      'Rate limit exceeded for content browsing. Please try again later.',
   },
   standardHeaders: true,
   legacyHeaders: false,
