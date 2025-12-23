@@ -13,6 +13,20 @@ import {
   configValidationSchema,
 } from '../config/routes.config.js';
 import { validateRequest } from './middleware/validation.middleware.js';
+import {
+  uploadMiddleware,
+  type UploadedFile,
+} from './middleware/upload.middleware.js';
+import { PipelineOrchestrator } from './pipeline/pipeline-orchestrator.js';
+import { Classifier } from './pipeline/classifier.js';
+import { Validator } from './pipeline/validator.js';
+import { Normalizer } from './pipeline/normalizer.js';
+import { Archiver } from './pipeline/archiver.js';
+import { Promoter } from './pipeline/promoter.js';
+import { ConfigLoader } from './config/config-loader.js';
+import { platformConfig } from '../config/platform.config.js';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 
 export class AppServer {
   private readonly app: Express;
@@ -95,6 +109,92 @@ export class AppServer {
           message: 'Configuration is valid',
           config,
         });
+      }
+    );
+
+    // POST /api/roms/upload - Upload and process ROM file
+    const uploadDir = join(tmpdir(), 'retroarch-uploads');
+    const BAD_REQUEST_STATUS = 400;
+    const INTERNAL_SERVER_ERROR_STATUS = 500;
+
+    this.app.post(
+      '/api/roms/upload',
+      uploadMiddleware(uploadDir),
+      async (req: Request, res: Response) => {
+        try {
+          const files = (req as Request & { files?: UploadedFile[] }).files;
+
+          if (files === undefined || files.length === 0) {
+            res.status(BAD_REQUEST_STATUS).json({
+              success: false,
+              errors: ['No file uploaded'],
+            });
+            return;
+          }
+
+          const uploadedFile = files[0];
+          if (uploadedFile === undefined) {
+            res.status(BAD_REQUEST_STATUS).json({
+              success: false,
+              errors: ['File data missing'],
+            });
+            return;
+          }
+
+          // Load user configuration
+          const configLoader = new ConfigLoader();
+          const configResult = await configLoader.load();
+
+          if (!configResult.success || configResult.config === undefined) {
+            res.status(INTERNAL_SERVER_ERROR_STATUS).json({
+              success: false,
+              errors: ['Configuration not found. Please run setup first.'],
+              phase: 'configuration',
+            });
+            return;
+          }
+
+          // Initialize pipeline components
+          const classifier = new Classifier(platformConfig);
+          const validator = new Validator(platformConfig);
+          const normalizer = new Normalizer(platformConfig);
+          const archiver = new Archiver(platformConfig);
+          const promoter = new Promoter(platformConfig);
+
+          // Create orchestrator with user config
+          const orchestrator = PipelineOrchestrator.fromUserConfig(
+            configResult.config,
+            classifier,
+            validator,
+            normalizer,
+            archiver,
+            promoter
+          );
+
+          // Process the uploaded file
+          const result = await orchestrator.process(uploadedFile.path);
+
+          if (result.success) {
+            res.json({
+              success: true,
+              message: 'ROM processed successfully',
+              rom: result.rom,
+            });
+          } else {
+            res.status(BAD_REQUEST_STATUS).json({
+              success: false,
+              errors: result.errors,
+              phase: result.phase,
+            });
+          }
+        } catch (error) {
+          const err = error as Error;
+          res.status(INTERNAL_SERVER_ERROR_STATUS).json({
+            success: false,
+            errors: [`Processing failed: ${err.message}`],
+            phase: 'unknown',
+          });
+        }
       }
     );
   }
