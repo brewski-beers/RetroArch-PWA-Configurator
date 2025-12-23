@@ -387,6 +387,27 @@ export const policyConfig: PolicyConfig = {
         blocking: true,
       },
     },
+    {
+      id: 'POL-021',
+      name: 'Rate Limiting',
+      description:
+        'All API endpoints must have rate limiting to prevent DoS attacks and abuse. ' +
+        'Requirements: (1) Global rate limit for all API endpoints (max 100 req/15min per IP). ' +
+        '(2) Stricter limits for write operations POST/PUT/PATCH (max 20 req/15min per IP). ' +
+        '(3) Use express-rate-limit middleware with standardStore for distributed systems. ' +
+        '(4) Return 429 status with Retry-After header when limit exceeded. ' +
+        'Prevents brute force attacks, API abuse, and resource exhaustion. ' +
+        'Enforcement: Automated tests verify rate limiting is applied to all routes.',
+      enabled: true,
+      severity: 'critical',
+      category: 'application',
+      priority: 3,
+      enforcement: {
+        automated: true,
+        manual: false,
+        blocking: true,
+      },
+    },
   ],
   compliance: {
     requireAuth: false, // Not yet implemented
