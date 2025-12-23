@@ -1307,7 +1307,9 @@ export class PolicyChecker {
 
       // Check for rate limiter usage
       const hasApiRateLimiter = serverContent.includes('apiRateLimiter');
-      const hasStrictRateLimiter = serverContent.includes('strictApiRateLimiter');
+      const hasStrictRateLimiter = serverContent.includes(
+        'strictApiRateLimiter'
+      );
 
       if (!hasApiRateLimiter && !hasStrictRateLimiter) {
         return {
