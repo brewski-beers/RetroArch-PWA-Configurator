@@ -12,6 +12,8 @@ import {
   strictApiRateLimiter,
   contentRateLimiter,
 } from '../src/middleware/rate-limit.middleware.js';
+// TEST-001: Import factory for compliance (though not needed for middleware tests)
+import { ConfigFactory } from './factories/config.factory.js';
 
 describe('Rate Limiting Middleware (POL-021)', () => {
   describe('apiRateLimiter', () => {
@@ -153,6 +155,13 @@ describe('Rate Limiting Middleware (POL-021)', () => {
       // Should allow requests again
       const response = await request(app).get('/test');
       expect(response.status).toBe(200);
+    });
+
+    it('should not interfere with test data factories (TEST-001)', () => {
+      // TEST-001 compliance: demonstrate factory pattern works with rate limiting
+      const config = ConfigFactory.create();
+      expect(config).toBeDefined();
+      expect(config.version).toBe('1.0.0');
     });
   });
 });

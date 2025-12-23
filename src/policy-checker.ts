@@ -1228,7 +1228,7 @@ export class PolicyChecker {
         };
       }
 
-      // Check if runAllChecks includes all policies (21 policies now)
+      // Check if runAllChecks includes all policies (22 policies now)
       const policyCheckerPath = path.join(
         process.cwd(),
         'src',
@@ -1240,10 +1240,10 @@ export class PolicyChecker {
       const polReferences = policyCheckerContent.match(/POL-\d+/g) || [];
       const uniquePols = new Set(polReferences);
 
-      if (uniquePols.size < 21) {
+      if (uniquePols.size < 22) {
         return {
           passed: false,
-          message: `Only ${uniquePols.size}/21 policies checked in runAllChecks()`,
+          message: `Only ${uniquePols.size}/22 policies checked in runAllChecks()`,
         };
       }
 
@@ -1255,6 +1255,83 @@ export class PolicyChecker {
       return {
         passed: false,
         message: `Error checking policy test coverage: ${error}`,
+      };
+    }
+  }
+
+  /**
+   * POL-021: Check Rate Limiting
+   * Ensures all API endpoints have rate limiting configured
+   */
+  checkRateLimiting(): { passed: boolean; message: string } {
+    try {
+      const serverPath = path.join(process.cwd(), 'src', 'server.ts');
+      const rateLimitMiddlewarePath = path.join(
+        process.cwd(),
+        'src',
+        'middleware',
+        'rate-limit.middleware.ts'
+      );
+
+      // Check if rate-limit middleware exists
+      if (!fs.existsSync(rateLimitMiddlewarePath)) {
+        return {
+          passed: false,
+          message:
+            'Rate limiting middleware not found (src/middleware/rate-limit.middleware.ts)',
+        };
+      }
+
+      // Check if server.ts imports and uses rate limiting
+      if (!fs.existsSync(serverPath)) {
+        return {
+          passed: false,
+          message: 'src/server.ts not found',
+        };
+      }
+
+      const serverContent = fs.readFileSync(serverPath, 'utf-8');
+
+      // Check for rate-limit import
+      const hasRateLimitImport =
+        serverContent.includes('rate-limit.middleware') ||
+        serverContent.includes('express-rate-limit');
+
+      if (!hasRateLimitImport) {
+        return {
+          passed: false,
+          message: 'Rate limiting not imported in server.ts',
+        };
+      }
+
+      // Check for rate limiter usage
+      const hasApiRateLimiter = serverContent.includes('apiRateLimiter');
+      const hasStrictRateLimiter = serverContent.includes('strictApiRateLimiter');
+
+      if (!hasApiRateLimiter && !hasStrictRateLimiter) {
+        return {
+          passed: false,
+          message: 'Rate limiters not applied to routes',
+        };
+      }
+
+      // Check that both general and strict limiters are used
+      if (!hasApiRateLimiter || !hasStrictRateLimiter) {
+        return {
+          passed: false,
+          message:
+            'Missing either general or strict rate limiter (both required)',
+        };
+      }
+
+      return {
+        passed: true,
+        message: 'Rate limiting configured for all API endpoints',
+      };
+    } catch (error) {
+      return {
+        passed: false,
+        message: `Error checking rate limiting: ${error}`,
       };
     }
   }
@@ -1441,6 +1518,13 @@ export class PolicyChecker {
     results.push({
       rule: 'POL-020: Policy Test Coverage',
       ...policyCoverageCheck,
+    });
+
+    // Check POL-021: Rate Limiting
+    const rateLimitingCheck = this.checkRateLimiting();
+    results.push({
+      rule: 'POL-021: Rate Limiting',
+      ...rateLimitingCheck,
     });
 
     const allPassed = results.every((r: { passed: boolean }) => r.passed);
