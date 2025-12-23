@@ -280,6 +280,6 @@ git commit -m "feat: description"
 
 ---
 
-**Need more details?** Use the MCP server or expand sections above.
+**Need more details?** Expand sections above or check `config/unified-policy.config.ts`.
 
 **Remember**: This is a RetroArch **server configurator**, NOT the RetroArch platform.

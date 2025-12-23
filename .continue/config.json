@@ -13,14 +13,7 @@
     "model": "AUTODETECT"
   },
   "allowAnonymousTelemetry": false,
-  "mcpServers": {
-    "retroarch-policy-server": {
-      "command": "node",
-      "args": ["dist/mcp-server/policy-server.js"],
-      "cwd": "${workspaceFolder}"
-    }
-  },
-  "systemMessage": "You are an expert TypeScript engineer working on RetroArch PWA Configurator. Use the MCP policy server to query rules dynamically. Always reference policy IDs (POL-*, TEST-*, E2E-*) in decisions.",
+  "systemMessage": "You are an expert TypeScript engineer working on RetroArch PWA Configurator. Use the config files to reference rules directly. Always reference policy IDs (POL-*, TEST-*, E2E-*) in decisions.",
   "contextProviders": [
     {
       "name": "code",

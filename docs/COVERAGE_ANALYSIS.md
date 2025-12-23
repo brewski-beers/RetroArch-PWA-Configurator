@@ -10,23 +10,23 @@
 
 ### 🟢 Excellent Coverage (95-100%)
 
-| Module                   | Lines  | Branch | Funcs  | Status | Uncovered Lines     |
-| ------------------------ | ------ | ------ | ------ | ------ | ------------------- |
-| **mcp-server/**          | 95.2%  | 93.93% | 78.94% | 🟢     | -                   |
-| tool-handler.ts          | 100%   | 100%   | 100%   | ✅     | None                |
-| mcp-examples.config.ts   | 100%   | 100%   | 100%   | ✅     | None                |
-| validators.ts            | 96.15% | 85.71% | 100%   | ✅     | 65-66, 91-92        |
-| resource-handler.ts      | 94.78% | 100%   | 80%    | ✅     | 109-114             |
-| **src/config/**          | 94.04% | 86.95% | 94.44% | 🟢     | -                   |
-| config-templates.ts      | 100%   | 100%   | 100%   | ✅     | None                |
-| config-validator.ts      | 96.2%  | 90.9%  | 100%   | ✅     | 181,193,196,204-207 |
-| config-loader.ts         | 94.03% | 76.47% | 100%   | ✅     | 94-97,131-135       |
-| **src/pages/**           | 99.05% | 90%    | 100%   | 🟢     | -                   |
-| page-generator.ts        | 99.05% | 90%    | 100%   | ✅     | 32                  |
-| **src/middleware/**      | 90.54% | 83.33% | 100%   | 🟢     | -                   |
-| validation.middleware.ts | 90.54% | 83.33% | 100%   | ✅     | 54-60               |
-| **src/**                 | 94.59% | 95%    | 90%    | 🟢     | -                   |
-| server.ts                | 94.59% | 95%    | 90%    | ✅     | 166-173,190-191     |
+| Module | Lines | Branch | Funcs | Status | Uncovered Lines |
+| ------ | ----- | ------ | ----- | ------ | --------------- |
+
+| tool-handler.ts | 100% | 100% | 100% | ✅ | None |
+| mcp-examples.config.ts | 100% | 100% | 100% | ✅ | None |
+| validators.ts | 96.15% | 85.71% | 100% | ✅ | 65-66, 91-92 |
+| resource-handler.ts | 94.78% | 100% | 80% | ✅ | 109-114 |
+| **src/config/** | 94.04% | 86.95% | 94.44% | 🟢 | - |
+| config-templates.ts | 100% | 100% | 100% | ✅ | None |
+| config-validator.ts | 96.2% | 90.9% | 100% | ✅ | 181,193,196,204-207 |
+| config-loader.ts | 94.03% | 76.47% | 100% | ✅ | 94-97,131-135 |
+| **src/pages/** | 99.05% | 90% | 100% | 🟢 | - |
+| page-generator.ts | 99.05% | 90% | 100% | ✅ | 32 |
+| **src/middleware/** | 90.54% | 83.33% | 100% | 🟢 | - |
+| validation.middleware.ts | 90.54% | 83.33% | 100% | ✅ | 54-60 |
+| **src/** | 94.59% | 95% | 90% | 🟢 | - |
+| server.ts | 94.59% | 95% | 90% | ✅ | 166-173,190-191 |
 
 ### 🟡 Good Coverage (80-95%)
 
@@ -49,15 +49,14 @@
 
 ### ⚫ No Coverage (Excluded or Not Tested)
 
-| Module                          | Reason                           |
-| ------------------------------- | -------------------------------- |
-| src/index.ts                    | Export-only file                 |
-| src/interfaces/index.ts         | Type definitions only            |
-| src/config/index.ts             | Export-only file                 |
-| src/pipeline/index.ts           | Export-only file                 |
-| mcp-server/policy-server.ts     | Entry point (integration tested) |
-| src/config/config-wizard.ts     | CLI tool (manual testing)        |
-| src/policy-documentation-gen.ts | CLI tool (manual testing)        |
+| Module                          | Reason                    |
+| ------------------------------- | ------------------------- |
+| src/index.ts                    | Export-only file          |
+| src/interfaces/index.ts         | Type definitions only     |
+| src/config/index.ts             | Export-only file          |
+| src/pipeline/index.ts           | Export-only file          |
+| src/config/config-wizard.ts     | CLI tool (manual testing) |
+| src/policy-documentation-gen.ts | CLI tool (manual testing) |
 
 ---
 
@@ -92,59 +91,48 @@
 
 ## Test Implementation Plan
 
-### Phase 1: Logger Tests (15 min) ⏱️
+### Phase 1: Additional Test Coverage (15 min) ⏱️
 
-**Create**: `tests/logger.test.ts`
+**Coverage improvements for remaining modules**
 
-```typescript
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { MCPLogger } from '../mcp-server/logger.js';
+afterEach(() => {
+vi.restoreAllMocks();
+});
 
-describe('MCPLogger', () => {
-  let consoleErrorSpy: any;
-  let consoleLogSpy: any;
+describe('warn()', () => {
+it('should log warning with metadata', () => {
+MCPLogger.warn('Test warning', { key: 'value' });
+expect(consoleErrorSpy).toHaveBeenCalledWith(
+expect.stringContaining('"level":"WARN"')
+);
+});
+});
 
-  beforeEach(() => {
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation();
-    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation();
-  });
+describe('error()', () => {
+it('should log error with Error object', () => {
+const error = new Error('Test error');
+MCPLogger.error('Error occurred', error);
+expect(consoleErrorSpy).toHaveBeenCalledWith(
+expect.stringContaining('"level":"ERROR"')
+);
+});
+});
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  describe('warn()', () => {
-    it('should log warning with metadata', () => {
-      MCPLogger.warn('Test warning', { key: 'value' });
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('"level":"WARN"')
-      );
-    });
-  });
-
-  describe('error()', () => {
-    it('should log error with Error object', () => {
-      const error = new Error('Test error');
-      MCPLogger.error('Error occurred', error);
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('"level":"ERROR"')
-      );
-    });
-  });
-
-  describe('debug()', () => {
-    it('should only log in development mode', () => {
-      const originalEnv = process.env['NODE_ENV'];
-      process.env['NODE_ENV'] = 'development';
+describe('debug()', () => {
+it('should only log in development mode', () => {
+const originalEnv = process.env['NODE_ENV'];
+process.env['NODE_ENV'] = 'development';
 
       MCPLogger.debug('Debug message');
       expect(consoleErrorSpy).toHaveBeenCalled();
 
       process.env['NODE_ENV'] = originalEnv;
     });
-  });
+
 });
-```
+});
+
+````
 
 **Expected**: logger.ts 85.56% → 100%
 
@@ -230,16 +218,15 @@ npm run test:coverage 2>&1 | grep "archiver.ts"
 
 # Run only pipeline tests
 npm run test -- tests/pipeline-orchestrator.test.ts --coverage
-```
+````
 
 ---
 
 ## Notes
 
-1. **MCP Server**: Excellent 95.2% coverage after recent refactoring
-2. **Pipeline Module**: Primary gap - needs error handling tests
-3. **Export Files**: Excluded (index.ts files with no logic)
-4. **CLI Tools**: Excluded (manual testing only)
+1. **Pipeline Module**: Primary gap - needs error handling tests
+2. **Export Files**: Excluded (index.ts files with no logic)
+3. **CLI Tools**: Excluded (manual testing only)
 
 **POL-002 Compliance Status**: 🟡 Partial (85.74% vs 95% target)
 

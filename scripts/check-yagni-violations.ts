@@ -180,8 +180,7 @@ function main(): void {
   console.error(' * - Rule of Three: [Duplicated in X places]');
   console.error(' * - Config-First tried: [Why config export insufficient]');
   console.error(' */\n');
-  console.error('💡 To bypass (emergencies only): git commit --no-verify');
-  console.error('📚 Learn more: docs/archive/mcp-server-experiment/\n');
+  console.error('💡 To bypass (emergencies only): git commit --no-verify\n');
 
   process.exit(1);
 }

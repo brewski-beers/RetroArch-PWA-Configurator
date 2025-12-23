@@ -10,20 +10,7 @@ echo ""
 
 EXIT_CODE=0
 
-# 1. Archive verification
-echo "📦 Step 1: Verify MCP Archive"
-echo "────────────────────────────────────────────────────────────"
-if [ -d "docs/archive/mcp-server-experiment" ]; then
-  echo "✅ Archive directory exists"
-  FILE_COUNT=$(find docs/archive/mcp-server-experiment -type f | wc -l | tr -d ' ')
-  echo "   Files archived: $FILE_COUNT"
-else
-  echo "❌ Archive directory missing"
-  EXIT_CODE=1
-fi
-echo ""
-
-# 2. YAGNI check
+# 1. YAGNI check
 echo "🎯 Step 2: YAGNI Policy Check"
 echo "────────────────────────────────────────────────────────────"
 if npm run yagni:check > /dev/null 2>&1; then
@@ -147,7 +134,6 @@ if [ $EXIT_CODE -eq 0 ]; then
   echo "✅ ALL VERIFICATION CHECKS PASSED!"
   echo ""
   echo "📊 Summary:"
-  echo "  ✓ MCP server archived (699 lines removed)"
   echo "  ✓ POL-018 (YAGNI) implemented and enforced"
   echo "  ✓ POL-019 (KISS) implemented for code review"
   echo "  ✓ Priority system working (POL-018 runs first)"
