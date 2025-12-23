@@ -22,32 +22,76 @@ Examples:
 - ✅ Add new rule to existing config file (OCP + Config-First)
 - ❌ Create new service layer when config export works (violates KISS)
 
-## 📋 Policy System (31 Rules)
+## 📋 Policy System (32 Rules)
 
 **Query full details**: Check `config/unified-policy.config.ts` (source of truth)
 
-### Critical Rules (Always Enforce)
+### Critical Rules (Evaluated in Priority Order)
 
-- **POL-000**: Policy Enforcement Integrity - Meta-policy ensuring all policies are validated
-- **POL-001**: TypeScript Strict Mode - Zero `any`, explicit types, strict null checks
-- **POL-010**: Secrets Management - No hardcoded credentials
-- **TEST-003**: Type Safety - Properly typed test data only
-- **E2E-001**: Use Test IDs - `data-testid` attributes required, use `getByTestId()`
+1. **POL-000**: Policy Enforcement Integrity - Meta-policy ensuring all policies validated 🏛️
+2. **POL-018**: YAGNI Principle - Build only what's needed NOW (blocks commit) 🚨
+3. **POL-020**: Policy Test Coverage - Every policy must have tests (blocks CI/CD) 📊
+4. **POL-001**: TypeScript Strict Mode - Zero `any`, explicit types, strict null checks
+5. **POL-003**: Config-First - Extend via config, not code (see YAGNI)
+6. **POL-010**: Secrets Management - No hardcoded credentials
+7. **POL-017**: Supply Chain Security - npm ci, audit signatures
+8. **TEST-003**: Type Safety - Properly typed test data only
+9. **E2E-001**: Use Test IDs - `data-testid` attributes required
+
+### Before Adding ANY New Code
+
+**YAGNI Checklist** (POL-018):
+
+```typescript
+/**
+ * YAGNI Justification: (REQUIRED for new abstractions)
+ *
+ * 1. Current Problem: [What you're solving NOW, not hypothetically]
+ * 2. Why Not Simpler: [Why can't a function/direct-import work?]
+ * 3. Rule of Three: [Is this duplicated in 3+ places?]
+ * 4. Config-First Tried: [Why can't this be config?]
+ */
+```
+
+**Examples**:
+
+✅ **YAGNI-Compliant**:
+
+```typescript
+// Direct usage (no abstraction)
+import { UnifiedPolicySystem } from './config/unified-policy.config.js';
+const rules = UnifiedPolicySystem.getAllRules();
+```
+
+❌ **YAGNI Violation**:
+
+```typescript
+// Unnecessary wrapper (MCP server pattern - DON'T REPLICATE)
+export class PolicyService {
+  getAllRules() {
+    return UnifiedPolicySystem.getAllRules(); // Just forwarding!
+  }
+}
+```
 
 ### High Priority Rules
 
 <details>
-<summary>Application Policies (POL-002 to POL-013)</summary>
+<summary>Application Policies (POL-000 to POL-020)</summary>
 
+- **POL-000**: Policy Enforcement Integrity - All policies must be enforced
+- **POL-001**: TypeScript Strict Mode - Zero `any`, explicit types
 - **POL-002**: Test Coverage - 95% lines, 100% functions, 85% branches
-- **POL-003**: SOLID Principles - Follow SRP, OCP, LSP, ISP, DIP
+- **POL-003**: SOLID Principles - Follow SRP, OCP, LSP, ISP, DIP (after YAGNI!)
 - **POL-004**: Test ID Attributes - All components need `data-testid="page-component"`
 - **POL-005**: ESLint - Zero errors required
 - **POL-006**: Prettier - Enforced formatting
-- **POL-007**: Pre-Commit Hooks - Format + lint before commit
+- **POL-007**: Pre-Commit Hooks - YAGNI + format + lint before commit
 - **POL-008**: Git Workflow - Conventional commits, branch naming
 - **POL-009**: TDD Approach - Tests first for new features
 - **POL-011**: Dependency Security - Zero high/critical vulnerabilities
+- **POL-018**: YAGNI Principle - Build only what's needed (priority 1)
+- **POL-019**: KISS Principle - Simple over complex (priority 2)
 - **POL-012**: CORS Config - Explicit allowlist, no wildcards
 - **POL-013**: Input Validation - Sanitize all user inputs
 

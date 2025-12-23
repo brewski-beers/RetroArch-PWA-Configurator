@@ -93,6 +93,47 @@ export class UnifiedPolicySystem {
   }
 
   /**
+   * Get rules sorted by priority
+   * Priority order: 1) priority number (asc), 2) severity, 3) blocking, 4) ID
+   */
+  static getRulesByPriority(): BasePolicyRule[] {
+    const allRules = this.getAllRules();
+    return allRules.sort((a, b) => {
+      // 1. Priority number (if specified)
+      const priorityA = a.priority ?? 999;
+      const priorityB = b.priority ?? 999;
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+
+      // 2. Severity
+      const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+      const severityDiff =
+        severityOrder[a.severity] - severityOrder[b.severity];
+      if (severityDiff !== 0) {
+        return severityDiff;
+      }
+
+      // 3. Blocking status (if enforcement specified)
+      const blockingA = a.enforcement?.blocking ?? false;
+      const blockingB = b.enforcement?.blocking ?? false;
+      if (blockingA !== blockingB) {
+        return blockingA ? -1 : 1;
+      }
+
+      // 4. Alphabetical by ID
+      return a.id.localeCompare(b.id);
+    });
+  }
+
+  /**
+   * Get critical rules sorted by execution priority
+   */
+  static getCriticalRulesByPriority(): BasePolicyRule[] {
+    return this.getRulesByPriority().filter((r) => r.severity === 'critical');
+  }
+
+  /**
    * Validate that all rules follow the base policy structure
    */
   static validateAllRules(): {

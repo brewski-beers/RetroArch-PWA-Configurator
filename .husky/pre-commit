@@ -1,5 +1,11 @@
 # Fast-fail format and lint checks before commit
-echo "🎨 Checking code formatting with Prettier..."
+echo "� Checking YAGNI principle compliance..."
+npm run yagni:check || {
+  echo "❌ YAGNI check failed! New abstractions need justification."
+  exit 1
+}
+
+echo "�🎨 Checking code formatting with Prettier..."
 npm run format:check || {
   echo "❌ Formatting check failed! Run 'npm run format' to fix."
   exit 1

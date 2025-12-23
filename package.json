@@ -16,7 +16,9 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"**/*.{ts,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,json,md}\"",
+    "yagni:check": "tsx scripts/check-yagni-violations.ts",
     "policy:check": "node dist/src/policy-checker.js",
+    "policy:coverage": "tsx scripts/check-policy-coverage.ts",
     "policy:docs": "node dist/src/policy-documentation-generator.js",
     "security:audit": "npm audit --audit-level=high",
     "test": "vitest run",
@@ -32,7 +34,7 @@
     "demo:snes": "tsx examples/ingest-rom.ts examples/roms/demo-game.sfc",
     "demo:genesis": "tsx examples/ingest-rom.ts examples/roms/demo-game.md",
     "demo:all": "npm run demo:nes && npm run demo:snes && npm run demo:genesis",
-    "ci:verify": "npm run format:check && npm run lint && npm run type-check && npm run build && npm run policy:check && npm run test:coverage && npm run test:e2e",
+    "ci:verify": "npm run yagni:check && npm run format:check && npm run lint && npm run type-check && npm run build && npm run policy:coverage && npm run policy:check && npm run test:coverage && npm run test:e2e",
     "prepare": "husky"
   },
   "keywords": [
