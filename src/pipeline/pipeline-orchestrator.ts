@@ -325,6 +325,22 @@ export class PipelineOrchestrator {
       errors.push(metadataResult.error ?? 'Metadata storage failed');
     }
 
+    // Write manifest entry
+    const manifestEntry = {
+      id: rom.id,
+      filename: rom.filename,
+      platform: rom.platform ?? 'unknown',
+      hash: rom.hash ?? '',
+      size: rom.size,
+      extension: rom.extension,
+      archivedAt: new Date().toISOString(),
+      metadata: rom.metadata ?? {},
+    };
+    const manifestResult = await this.archiver.writeManifest(manifestEntry);
+    if (!manifestResult.success) {
+      errors.push(manifestResult.error ?? 'Manifest write failed');
+    }
+
     return {
       success: errors.length === 0,
       errors,

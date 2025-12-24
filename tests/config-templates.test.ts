@@ -2,6 +2,7 @@
  * Tests for Configuration Templates
  * Following TEST-002 (Single Responsibility per test)
  * Following TEST-004 (Arrange-Act-Assert pattern)
+ * Covering error paths for POL-002 (Test Coverage)
  */
 
 import { describe, it, expect } from 'vitest';
@@ -12,6 +13,7 @@ import {
   getTemplate,
   getRecommendedTemplate,
 } from '../src/config/config-templates.js';
+import { ConfigFactory } from './factories/config.factory.js';
 
 describe('ConfigTemplates', () => {
   // Use obfuscated example paths (not real user paths)
@@ -56,6 +58,21 @@ describe('ConfigTemplates', () => {
       // Assert
       expect(config.archive.bios.required).toBe(false);
       expect(config.archive.metadata.required).toBe(false);
+    });
+
+    it('should handle empty base path', () => {
+      // Act & Assert
+      expect(() => coLocatedTemplate.generate('')).toThrow();
+    });
+
+    it('should handle null base path', () => {
+      // Act & Assert
+      expect(() => coLocatedTemplate.generate(null as any)).toThrow();
+    });
+
+    it('should handle undefined base path', () => {
+      // Act & Assert
+      expect(() => coLocatedTemplate.generate(undefined as any)).toThrow();
     });
   });
 
@@ -115,6 +132,11 @@ describe('ConfigTemplates', () => {
       expect(config.sync.root.required).toBe(true);
       expect(config.workspace.processing.required).toBe(true);
     });
+
+    it('should handle invalid base path', () => {
+      // Act & Assert
+      expect(() => minimalTemplate.generate('')).toThrow();
+    });
   });
 
   describe('getTemplate', () => {
@@ -137,6 +159,22 @@ describe('ConfigTemplates', () => {
       // Assert
       expect(result).toBeUndefined();
     });
+
+    it('should handle null id', () => {
+      // Act
+      const result = getTemplate(null as any);
+
+      // Assert
+      expect(result).toBeUndefined();
+    });
+
+    it('should handle empty string id', () => {
+      // Act
+      const result = getTemplate('');
+
+      // Assert
+      expect(result).toBeUndefined();
+    });
   });
 
   describe('getRecommendedTemplate', () => {
@@ -147,6 +185,17 @@ describe('ConfigTemplates', () => {
       // Assert
       expect(recommended).toBe(coLocatedTemplate);
       expect(recommended.recommended).toBe(true);
+    });
+
+    it('should create config compatible with factory', () => {
+      // Arrange
+      const factoryConfig = ConfigFactory.create();
+      const templateConfig = coLocatedTemplate.generate(EXAMPLE_BASE_PATH);
+
+      // Assert - Both should have same structure
+      expect(factoryConfig.version).toBe(templateConfig.version);
+      expect(factoryConfig.archive.root).toBeDefined();
+      expect(templateConfig.archive.root).toBeDefined();
     });
   });
 });

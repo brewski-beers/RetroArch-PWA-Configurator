@@ -24,6 +24,14 @@ export class Classifier implements IClassifier {
    * Classifies a file by extension and determines platform
    */
   async classify(filePath: string): Promise<PhaseResult<ROMFile>> {
+    // Defensive: Validate input
+    if (!filePath || filePath.trim() === '') {
+      return {
+        success: false,
+        error: 'Invalid input: file path is required',
+      };
+    }
+
     try {
       // Security: Resolve to absolute path and validate
       const resolvedPath = resolve(filePath);
@@ -39,6 +47,14 @@ export class Classifier implements IClassifier {
 
       const extension = extname(filename).toLowerCase();
       const stats = await stat(resolvedPath);
+
+      // Defensive: Check if path is a directory
+      if (stats.isDirectory()) {
+        return {
+          success: false,
+          error: 'Invalid input: path is a directory, not a file',
+        };
+      }
 
       // Find platform by extension
       const platform = this.config.platforms.find((p) =>
@@ -81,6 +97,36 @@ export class Classifier implements IClassifier {
    * Moves classified files to validation phase
    */
   moveToValidation(rom: ROMFile): PhaseResult<string> {
+    // Defensive: Validate input
+    if (rom === undefined || rom === null) {
+      return {
+        success: false,
+        error: 'Invalid input: ROM object is null or undefined',
+      };
+    }
+
+    if (
+      rom.platform === undefined ||
+      rom.platform === null ||
+      rom.platform.trim() === ''
+    ) {
+      return {
+        success: false,
+        error: 'Invalid input: ROM platform is required',
+      };
+    }
+
+    if (
+      rom.filename === undefined ||
+      rom.filename === null ||
+      rom.filename.trim() === ''
+    ) {
+      return {
+        success: false,
+        error: 'Invalid input: ROM filename is required',
+      };
+    }
+
     // TODO: Implement in Phase D
     // For now, return success with placeholder
     return {

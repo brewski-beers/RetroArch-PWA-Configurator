@@ -2,6 +2,7 @@
  * Unit tests for PageGenerator
  * Tests page generation logic following SRP
  * Uses test factories to maintain DRY principle (TEST-001, TEST-005)
+ * Covering error paths for POL-002 (Test Coverage)
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -107,6 +108,50 @@ describe('PageGenerator', () => {
       expect(html).toContain('flex');
       expect(html).toContain('</style>');
     });
+
+    it('should handle null page config', () => {
+      // Act & Assert
+      expect(() => generator.generatePage(null as any)).toThrow();
+    });
+
+    it('should handle page config with missing title', () => {
+      const invalidConfig = PageConfigFactory.create();
+      delete (invalidConfig as any).title;
+
+      // Act & Assert
+      expect(() => generator.generatePage(invalidConfig)).toThrow('title');
+    });
+
+    it('should handle page config with missing id', () => {
+      const invalidConfig = PageConfigFactory.create();
+      delete (invalidConfig as any).id;
+
+      // Act & Assert
+      expect(() => generator.generatePage(invalidConfig)).toThrow('id');
+    });
+
+    it('should handle page config with empty components array', () => {
+      const configWithNoComponents = PageConfigFactory.create({
+        components: [],
+      });
+
+      const html = generator.generatePage(configWithNoComponents);
+
+      // Assert - Should still generate valid HTML without components
+      expect(html).toContain('<!DOCTYPE html>');
+      expect(html).toContain('<body');
+    });
+
+    it('should handle component with missing testId', () => {
+      const invalidComponent = ComponentFactory.createHeader();
+      delete (invalidComponent as any).testId;
+      const config = PageConfigFactory.create({
+        components: [invalidComponent],
+      });
+
+      // Act & Assert
+      expect(() => generator.generatePage(config)).toThrow('testId');
+    });
   });
 
   describe('getPageByRoute', () => {
@@ -120,6 +165,18 @@ describe('PageGenerator', () => {
 
     it('should return undefined for non-existent route', () => {
       const page = generator.getPageByRoute('/non-existent');
+
+      expect(page).toBeUndefined();
+    });
+
+    it('should handle null route input', () => {
+      const page = generator.getPageByRoute(null as any);
+
+      expect(page).toBeUndefined();
+    });
+
+    it('should handle empty string route', () => {
+      const page = generator.getPageByRoute('');
 
       expect(page).toBeUndefined();
     });
@@ -152,6 +209,12 @@ describe('PageGenerator', () => {
         expect(html).toContain('<body');
         expect(html).toContain('</body>');
       }
+    });
+
+    it('should handle page generation errors gracefully', () => {
+      // This test ensures generateAllPages doesn't crash
+      // even if individual pages have issues
+      expect(() => generator.generateAllPages()).not.toThrow();
     });
   });
 });

@@ -14,6 +14,7 @@ import type { PlatformConfig } from '../interfaces/platform-config.interface.js'
 import { mkdir, copyFile, readFile, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { existsSync } from 'node:fs';
+const JSON_INDENT = 2;
 
 export class Archiver implements IArchiver {
   private readonly config: PlatformConfig;
@@ -50,6 +51,7 @@ export class Archiver implements IArchiver {
     } catch (error) {
       return {
         success: false,
+        // TEST-007: Skip coverage - defensive check for non-Error exception
         error: error instanceof Error ? error.message : 'Archive failed',
       };
     }
@@ -91,7 +93,11 @@ export class Archiver implements IArchiver {
       }
 
       // Write manifest back
-      await writeFile(manifestPath, JSON.stringify(manifest, null, 2), 'utf-8');
+      await writeFile(
+        manifestPath,
+        JSON.stringify(manifest, null, JSON_INDENT),
+        'utf-8'
+      );
 
       return {
         success: true,
@@ -106,6 +112,7 @@ export class Archiver implements IArchiver {
       return {
         success: false,
         data: false,
+        // TEST-007: Skip coverage - defensive check for non-Error exception
         error: error instanceof Error ? error.message : 'Manifest write failed',
       };
     }
@@ -137,7 +144,11 @@ export class Archiver implements IArchiver {
         storedAt: new Date().toISOString(),
       };
 
-      await writeFile(metadataPath, JSON.stringify(metadata, null, 2), 'utf-8');
+      await writeFile(
+        metadataPath,
+        JSON.stringify(metadata, null, JSON_INDENT),
+        'utf-8'
+      );
 
       return {
         success: true,
@@ -151,6 +162,7 @@ export class Archiver implements IArchiver {
       return {
         success: false,
         data: false,
+        // TEST-007: Skip coverage - defensive check for non-Error exception
         error: error instanceof Error ? error.message : 'Metadata store failed',
       };
     }

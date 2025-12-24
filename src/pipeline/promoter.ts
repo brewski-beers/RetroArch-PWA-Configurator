@@ -14,6 +14,8 @@ import type { PlatformConfig } from '../interfaces/platform-config.interface.js'
 import { mkdir, copyFile, readFile, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { existsSync } from 'node:fs';
+const CRC32_LENGTH = 8;
+const JSON_INDENT = 2;
 
 export class Promoter implements IPromoter {
   private readonly config: PlatformConfig;
@@ -59,6 +61,7 @@ export class Promoter implements IPromoter {
     } catch (error) {
       return {
         success: false,
+        // TEST-007: Skip coverage - defensive check for non-Error exception
         error: error instanceof Error ? error.message : 'Promotion failed',
       };
     }
@@ -85,7 +88,7 @@ export class Promoter implements IPromoter {
         label: rom.filename.replace(/\.[^.]+$/, ''),
         core_path: 'DETECT',
         core_name: 'DETECT',
-        crc32: rom.hash?.substring(0, 8) ?? '00000000',
+        crc32: rom.hash?.substring(0, CRC32_LENGTH) ?? '00000000',
         db_name: rom.platform ?? 'Unknown',
       };
 
@@ -136,7 +139,11 @@ export class Promoter implements IPromoter {
       }
 
       // Write playlist back
-      await writeFile(playlistPath, JSON.stringify(playlist, null, 2), 'utf-8');
+      await writeFile(
+        playlistPath,
+        JSON.stringify(playlist, null, JSON_INDENT),
+        'utf-8'
+      );
 
       return {
         success: true,
@@ -150,6 +157,7 @@ export class Promoter implements IPromoter {
     } catch (error) {
       return {
         success: false,
+        // TEST-007: Skip coverage - defensive check for non-Error exception
         error:
           error instanceof Error ? error.message : 'Playlist update failed',
       };

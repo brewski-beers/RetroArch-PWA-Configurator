@@ -9,6 +9,7 @@ import { ConfigValidator } from './config-validator.js';
 import { getRecommendedTemplate } from './config-templates.js';
 import { readFile, writeFile, mkdir } from 'fs/promises';
 import { dirname } from 'path';
+const JSON_INDENT = 2;
 
 /**
  * Result of loading configuration
@@ -53,15 +54,25 @@ export class ConfigLoader {
       const content = await readFile(this.configPath, 'utf-8');
 
       // Parse JSON
-      let config: UserConfig;
+      let configRaw: unknown;
       try {
-        config = JSON.parse(content) as UserConfig;
+        configRaw = JSON.parse(content);
       } catch (parseError) {
         return {
           success: false,
           error: `Invalid JSON in config file: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
         };
       }
+
+      // Defensive: Check if parsed config is null or not an object
+      if (configRaw === null || typeof configRaw !== 'object') {
+        return {
+          success: false,
+          error: 'Invalid configuration: config must be an object',
+        };
+      }
+
+      const config = configRaw as UserConfig;
 
       // Validate config
       const validation = this.validator.validate(config);
@@ -105,6 +116,14 @@ export class ConfigLoader {
    * Validates before saving
    */
   async save(config: UserConfig): Promise<SaveResult> {
+    // Defensive: Validate input
+    if (config === null || config === undefined || typeof config !== 'object') {
+      return {
+        success: false,
+        error: 'Invalid input: config must be a valid object',
+      };
+    }
+
     // Validate config before saving
     const validation = this.validator.validate(config);
     if (!validation.valid) {
@@ -121,7 +140,7 @@ export class ConfigLoader {
       await mkdir(dir, { recursive: true });
 
       // Write config to file
-      const content = JSON.stringify(config, null, 2);
+      const content = JSON.stringify(config, null, JSON_INDENT);
       await writeFile(this.configPath, content, 'utf-8');
 
       return {
