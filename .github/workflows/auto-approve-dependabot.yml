@@ -12,8 +12,8 @@
 # 1. PR opened/updated by Dependabot
 # 2. Update PR branch when main branch changes (auto-rebase)
 # 3. All CI checks run (verify.yml, security-scan.yml)
-# 4. When PR Verification completes successfully → auto-approve
-# 5. Manual merge still required (auto-merge can be added later)
+# 4. When PR Verification completes successfully → auto-approve and auto-merge
+# 5. No manual intervention required
 #
 # Reference: POL-014 (Automated Dependency Updates)
 # Reference: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_run
@@ -102,7 +102,7 @@ jobs:
 
             // Filter for open PRs
             const openPRs = pullRequests.filter(pr => pr.state === 'open');
-            
+
             if (openPRs.length === 0) {
               console.log('No open PRs found for this commit');
               return;
@@ -129,21 +129,41 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           pull-request-number: ${{ steps.pr.outputs.pr_number }}
 
+      - name: Auto-Merge PR
+        if: steps.pr.outputs.is_dependabot == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ steps.pr.outputs.pr_number }};
+
+            try {
+              // Enable auto-merge with squash method
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                merge_method: 'squash'
+              });
+              console.log(`✅ Successfully merged PR #${prNumber}`);
+            } catch (error) {
+              console.log(`⚠️ Could not merge PR #${prNumber}: ${error.message}`);
+              throw error;
+            }
+
       - name: Add Success Comment
         if: steps.pr.outputs.is_dependabot == 'true'
         uses: actions/github-script@v7
         with:
           script: |
             const prNumber = ${{ steps.pr.outputs.pr_number }};
-            
+
             const body = [
-              '✅ **Auto-approved by Dependabot workflow**',
+              '✅ **Auto-approved and merged by Dependabot workflow**',
               '',
               'All CI checks passed successfully.',
-              'This PR has been automatically approved.',
+              'This PR has been automatically approved and merged.',
               '',
-              '💡 **Note**: Manual merge is still required.',
-              'Review the changes and merge when ready.'
+              '🎉 Changes are now in the main branch.'
             ].join('\n');
 
             await github.rest.issues.createComment({

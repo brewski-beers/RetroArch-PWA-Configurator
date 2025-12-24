@@ -13,7 +13,7 @@ This project implements a **self-healing architecture** for dependency managemen
 | Policy      | Name                         | Severity | Description                                            |
 | ----------- | ---------------------------- | -------- | ------------------------------------------------------ |
 | **POL-011** | Dependency Security Audit    | High     | npm audit with zero high/critical vulnerabilities      |
-| **POL-014** | Automated Dependency Updates | High     | Dependabot configured for auto-updates                 |
+| **POL-014** | Automated Dependency Updates | High     | Fully automated approval and merge via workflow_run    |
 | **POL-015** | Version Compatibility Policy | Medium   | Controlled version ranges (caret/tilde)                |
 | **POL-016** | License Compliance           | Medium   | OSI-approved licenses only (MIT, Apache-2.0, BSD, ISC) |
 | **POL-017** | Supply Chain Security        | Critical | Lockfile integrity, npm ci enforcement                 |
@@ -70,33 +70,44 @@ npm run policy:check    # All 17 policies
 
 1. Dependabot detects outdated dependency
 2. Creates PR with grouped updates (patch/minor)
-3. CI runs full test suite
-4. Auto-merge if:
-   - All tests pass
-   - No breaking changes
-   - Security patch or patch/minor update
+3. PR Verification workflow runs full test suite
+4. Auto-approve-dependabot workflow triggers on successful completion
+5. PR is automatically approved and merged (squash method)
+6. No manual intervention required
+
+**Workflow sequence**:
+```
+Dependabot PR → CI Checks Pass → Auto-Approve → Auto-Merge → Done
+```
 
 **Configuration**:
 
 ```yaml
-# .github/dependabot.yml
-groups:
-  production:
-    patterns: ['express', 'cors', 'zod']
-    update-types: ['patch', 'minor']
+# .github/workflows/auto-approve-dependabot.yml
+on:
+  workflow_run:
+    workflows: ['PR Verification']
+    types: [completed]
 ```
+
+**Security safeguards**:
+- Only runs for `dependabot[bot]` PRs (author verification)
+- Requires `workflow_run.conclusion == 'success'`
+- All CI checks must pass before merge
+- Uses squash merge to maintain clean history
 
 ### 2. **Vulnerability Remediation**
 
 **How it works**:
 
 1. Security vulnerability detected (GitHub/npm audit)
-2. Dependabot creates **priority PR**
+2. Dependabot creates **priority PR** with fix
 3. Security scan workflow validates fix
-4. Auto-merge if tests pass
-5. Notification sent to maintainers
+4. Auto-approve-dependabot workflow approves and merges if tests pass
+5. Changes deployed to main automatically
+6. Notification sent via PR comment
 
-**Manual remediation**:
+**Manual remediation** (if auto-merge fails):
 
 ```bash
 # Fix automatically (patch/minor updates)
