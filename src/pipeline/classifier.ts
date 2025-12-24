@@ -56,6 +56,14 @@ export class Classifier implements IClassifier {
         };
       }
 
+      // Defensive: Check if path is a directory
+      if (stats.isDirectory()) {
+        return {
+          success: false,
+          error: 'Invalid input: path is a directory, not a file',
+        };
+      }
+
       // Find platform by extension
       const platform = this.config.platforms.find((p) =>
         p.extensions.includes(extension)
