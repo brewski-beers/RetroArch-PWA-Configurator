@@ -4,8 +4,10 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { AppServer } from '../src/server.js';
 import request from 'supertest';
+
+import { AppServer } from '../src/server.js';
+
 import { ConfigFactory } from './factories/config.factory.js';
 
 describe('AppServer', () => {

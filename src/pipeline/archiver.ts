@@ -4,16 +4,17 @@
  * Following SRP - single responsibility: archival
  */
 
+import { mkdir, copyFile, readFile, writeFile } from 'node:fs/promises';
+import { join, dirname } from 'node:path';
+import { existsSync } from 'node:fs';
+
+import type { PlatformConfig } from '../interfaces/platform-config.interface.js';
 import type {
   IArchiver,
   PhaseResult,
   ROMFile,
   ManifestEntry,
 } from '../interfaces/pipeline.interface.js';
-import type { PlatformConfig } from '../interfaces/platform-config.interface.js';
-import { mkdir, copyFile, readFile, writeFile } from 'node:fs/promises';
-import { join, dirname } from 'node:path';
-import { existsSync } from 'node:fs';
 const JSON_INDENT = 2;
 
 export class Archiver implements IArchiver {

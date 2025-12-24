@@ -4,17 +4,18 @@
  * Following TEST-004 (Arrange-Act-Assert pattern)
  */
 
+import { writeFile, mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+
 import { describe, it, expect, beforeEach } from 'vitest';
+
 import { PipelineOrchestrator } from '../src/pipeline/pipeline-orchestrator.js';
 import { Classifier } from '../src/pipeline/classifier.js';
 import { Validator } from '../src/pipeline/validator.js';
 import { Normalizer } from '../src/pipeline/normalizer.js';
 import { Archiver } from '../src/pipeline/archiver.js';
 import { Promoter } from '../src/pipeline/promoter.js';
-import { PlatformConfigFactory } from './factories/pipeline.factory.js';
-import { writeFile, mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
-import { tmpdir } from 'node:os';
 import type {
   IClassifier,
   IValidator,
@@ -25,6 +26,8 @@ import type {
   ROMFile,
   PlaylistEntry,
 } from '../src/interfaces/pipeline.interface.js';
+
+import { PlatformConfigFactory } from './factories/pipeline.factory.js';
 
 describe('PipelineOrchestrator', () => {
   let orchestrator: PipelineOrchestrator;

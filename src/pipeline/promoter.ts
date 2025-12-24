@@ -4,16 +4,17 @@
  * Following SRP - single responsibility: promotion
  */
 
+import { mkdir, copyFile, readFile, writeFile } from 'node:fs/promises';
+import { join, dirname } from 'node:path';
+import { existsSync } from 'node:fs';
+
+import type { PlatformConfig } from '../interfaces/platform-config.interface.js';
 import type {
   IPromoter,
   PhaseResult,
   ROMFile,
   PlaylistEntry,
 } from '../interfaces/pipeline.interface.js';
-import type { PlatformConfig } from '../interfaces/platform-config.interface.js';
-import { mkdir, copyFile, readFile, writeFile } from 'node:fs/promises';
-import { join, dirname } from 'node:path';
-import { existsSync } from 'node:fs';
 const CRC32_LENGTH = 8;
 const JSON_INDENT = 2;
 

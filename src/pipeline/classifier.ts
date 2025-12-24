@@ -4,14 +4,15 @@
  * Following SRP - single responsibility: file classification
  */
 
+import { basename, extname, resolve } from 'node:path';
+import { stat } from 'node:fs/promises';
+
 import type {
   IClassifier,
   PhaseResult,
   ROMFile,
 } from '../interfaces/pipeline.interface.js';
 import type { PlatformConfig } from '../interfaces/platform-config.interface.js';
-import { basename, extname, resolve } from 'node:path';
-import { stat } from 'node:fs/promises';
 
 export class Classifier implements IClassifier {
   private readonly config: PlatformConfig;

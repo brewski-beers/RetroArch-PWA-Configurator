@@ -5,10 +5,11 @@
  * Follows SRP: Single responsibility to generate policy docs
  */
 
-import { UnifiedPolicySystem } from '../config/unified-policy.config.js';
-import type { BasePolicyRule } from '../config/base-policy.config.js';
 import fs from 'node:fs';
 import path from 'node:path';
+
+import { UnifiedPolicySystem } from '../config/unified-policy.config.js';
+import type { BasePolicyRule } from '../config/base-policy.config.js';
 
 export class PolicyDocumentationGenerator {
   /**

@@ -6,9 +6,11 @@
 
 import { stdin as input, stdout as output } from 'process';
 import * as readline from 'readline/promises';
+
+import type { UserConfig } from '../interfaces/user-config.interface.js';
+
 import { ConfigLoader } from './config-loader.js';
 import { configTemplates, getRecommendedTemplate } from './config-templates.js';
-import type { UserConfig } from '../interfaces/user-config.interface.js';
 
 /**
  * Interactive configuration wizard

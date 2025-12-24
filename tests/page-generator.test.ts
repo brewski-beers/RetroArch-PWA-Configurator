@@ -6,7 +6,9 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
+
 import { PageGenerator } from '../src/pages/page-generator.js';
+
 import {
   PageConfigFactory,
   ComponentFactory,

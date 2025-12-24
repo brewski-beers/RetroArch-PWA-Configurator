@@ -5,6 +5,9 @@
  * Usage: npx tsx examples/ingest-rom.ts <path-to-rom>
  */
 
+import { resolve } from 'node:path';
+import { existsSync } from 'node:fs';
+
 import { PipelineOrchestrator } from '../src/pipeline/pipeline-orchestrator.js';
 import { Classifier } from '../src/pipeline/classifier.js';
 import { Validator } from '../src/pipeline/validator.js';
@@ -13,8 +16,6 @@ import { Archiver } from '../src/pipeline/archiver.js';
 import { Promoter } from '../src/pipeline/promoter.js';
 import { ConfigLoader } from '../src/config/config-loader.js';
 import { platformConfig } from '../config/platform.config.js';
-import { resolve } from 'node:path';
-import { existsSync } from 'node:fs';
 
 // ANSI color codes for pretty output
 const colors = {

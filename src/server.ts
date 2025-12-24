@@ -5,18 +5,21 @@
  * Following POL-012 (CORS), POL-013 (Input Validation), and POL-021 (Rate Limiting)
  */
 
-import express, { type Express, type Request, type Response } from 'express';
 import path from 'node:path';
 import { promises as fsp } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+
+import express, { type Express, type Request, type Response } from 'express';
 import cors from 'cors';
 import escapeHtml from 'escape-html';
-import { PageGenerator } from './pages/page-generator.js';
+
 import {
   getCorsConfig,
   configValidationSchema,
 } from '../config/routes.config.js';
+
+import { PageGenerator } from './pages/page-generator.js';
 import { validateRequest } from './middleware/validation.middleware.js';
 import {
   apiRateLimiter,
