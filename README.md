@@ -50,6 +50,7 @@ npm run ingest /path/to/rom-collection/
 ### 5. RetroArch Configuration
 
 In RetroArch → Settings → Directory:
+
 - Set **Base Directory** to `/home/user/RetroArch`
 - RetroArch automatically finds everything!
 
@@ -78,11 +79,13 @@ The new batch processor is designed for speed and efficiency:
 Two approaches available:
 
 #### Simple Configuration (Recommended)
+
 - **Single base path** - All files under one RetroArch directory
 - **Zero complexity** - One question setup
 - **RetroArch-native** - Matches RetroArch's expected structure
 
 #### Advanced Configuration (Legacy)
+
 - **Co-Located** - All directories under single base path
 - **Distributed** - Archive local, Sync on network
 - **Minimal** - Bare minimum for testing
