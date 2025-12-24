@@ -5,7 +5,6 @@
  * Following POL-001 (Pipeline pattern integration)
  */
 
-import { batchQueue, type BatchJob } from './batch-queue.js';
 import { PipelineOrchestrator } from '../pipeline/pipeline-orchestrator.js';
 import { Classifier } from '../pipeline/classifier.js';
 import { Validator } from '../pipeline/validator.js';
@@ -15,6 +14,8 @@ import { Promoter } from '../pipeline/promoter.js';
 import { ConfigLoader } from '../config/config-loader.js';
 import { platformConfig } from '../../config/platform.config.js';
 import { batchUploadConfig } from '../../config/policy.config.js';
+
+import { batchQueue, type BatchJob } from './batch-queue.js';
 
 /**
  * Batch processor for handling queued ROM upload jobs

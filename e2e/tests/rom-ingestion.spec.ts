@@ -4,9 +4,10 @@
  * Follows E2E-001: Use Test IDs for all selectors
  */
 
-import { test, expect } from '@playwright/test';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
+
+import { test, expect } from '@playwright/test';
 
 const INGEST_PAGE_URL = '/ingest';
 const TEST_ROM_PATH = join(process.cwd(), 'examples', 'roms', 'demo-game.nes');

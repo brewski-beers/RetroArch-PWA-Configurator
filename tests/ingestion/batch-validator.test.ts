@@ -6,6 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
+
 import { validateBatch } from '../../src/ingestion/batch-validator.js';
 
 // Inline config for testing (POL-022)

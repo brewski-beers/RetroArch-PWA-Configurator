@@ -4,10 +4,11 @@
  * Following POL-018 (YAGNI) - minimal implementation for current needs
  */
 
-import type { Request, Response, NextFunction } from 'express';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { join, basename } from 'node:path';
 import { existsSync } from 'node:fs';
+
+import type { Request, Response, NextFunction } from 'express';
 
 export interface UploadedFile {
   fieldname: string;

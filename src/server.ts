@@ -18,6 +18,7 @@ import {
   getCorsConfig,
   configValidationSchema,
 } from '../config/routes.config.js';
+import { platformConfig } from '../config/platform.config.js';
 
 import { PageGenerator } from './pages/page-generator.js';
 import { validateRequest } from './middleware/validation.middleware.js';
@@ -36,7 +37,6 @@ import { Validator } from './pipeline/validator.js';
 import { Normalizer } from './pipeline/normalizer.js';
 import { Archiver } from './pipeline/archiver.js';
 import { Promoter } from './pipeline/promoter.js';
-import { platformConfig } from '../config/platform.config.js';
 import { ConfigLoader } from './config/config-loader.js';
 
 const HTTP_STATUS_INTERNAL_ERROR = 500;

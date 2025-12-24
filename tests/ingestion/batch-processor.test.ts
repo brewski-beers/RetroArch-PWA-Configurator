@@ -5,6 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import { batchQueue, type BatchFile } from '../../src/ingestion/batch-queue.js';
 import { batchProcessor } from '../../src/ingestion/batch-processor.js';
 
