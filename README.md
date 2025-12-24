@@ -29,6 +29,7 @@ npm run ingest /path/to/your/roms/
 ```
 
 That's it! The tool will:
+
 1. Auto-detect your RetroArch folder (or use `~/RetroArch` as default)
 2. Process all ROM files in parallel
 3. Create playlists and organize by platform
@@ -48,13 +49,14 @@ npm run ingest /path/to/roms/
 Point RetroArch to your directory (auto-detected path shown during ingestion):
 
 In RetroArch → Settings → Directory:
+
 - Set **Base Directory** to your RetroArch path (e.g., `~/RetroArch`)
 - RetroArch automatically finds everything!
 
 ### Syncthing Integration (Optional)
 
 - Add your RetroArch directory to Syncthing
-- Share with your devices  
+- Share with your devices
 - All devices stay in sync automatically
 
 ## Performance

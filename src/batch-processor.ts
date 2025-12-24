@@ -171,7 +171,7 @@ export class BatchProcessor {
     try {
       // Check if path is a file
       const pathStat = await stat(path);
-      
+
       if (pathStat.isFile()) {
         // Single file - check if it's a recognized ROM file
         const ext = extname(path).toLowerCase();

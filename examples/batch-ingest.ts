@@ -61,14 +61,14 @@ async function main(): Promise<void> {
 
   // Try to load configuration, fall back to auto-detection
   log('📋 Loading configuration...', colors.cyan);
-  let config = await loadConfig();
+  const config = await loadConfig();
   let basePath: string;
 
   if (!config) {
     log('⚠️  No configuration found, using auto-detection...', colors.yellow);
-    
+
     const detectedPath = detectRetroArchPath();
-    if (detectedPath) {
+    if (detectedPath !== null && detectedPath !== undefined) {
       basePath = detectedPath;
       log(`✅ Auto-detected RetroArch: ${basePath}`, colors.green);
     } else {
