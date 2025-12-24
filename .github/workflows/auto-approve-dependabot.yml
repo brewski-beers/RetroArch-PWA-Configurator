@@ -5,24 +5,26 @@
 # Security Features:
 # - Only runs for dependabot[bot] PRs (strict author check)
 # - Requires all CI checks to pass before approval
-# - Uses pull_request_target for proper GITHUB_TOKEN permissions
+# - Uses workflow_run trigger to wait for PR Verification to complete
 # - Minimal permissions (pull-requests: write, contents: write for rebase)
 #
 # Workflow:
 # 1. PR opened/updated by Dependabot
 # 2. Update PR branch when main branch changes (auto-rebase)
 # 3. All CI checks run (verify.yml, security-scan.yml)
-# 4. If all checks pass → auto-approve
+# 4. When PR Verification completes successfully → auto-approve
 # 5. Manual merge still required (auto-merge can be added later)
 #
 # Reference: POL-014 (Automated Dependency Updates)
-# Reference: https://docs.github.com/en/code-security/dependabot
+# Reference: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_run
 
 name: Auto-Approve Dependabot
 
 on:
-  pull_request_target:
-    types: [opened, synchronize, reopened]
+  # Trigger when PR Verification workflow completes
+  workflow_run:
+    workflows: ['PR Verification']
+    types: [completed]
   # Also trigger when main branch is pushed (to update open Dependabot PRs)
   push:
     branches:
@@ -79,32 +81,61 @@ jobs:
   dependabot-approve:
     name: Auto-Approve Dependabot PR
     runs-on: ubuntu-latest
-    # Only run for Dependabot PRs on pull_request_target events
+    # Only run when workflow_run event completes successfully
     # Security: prevent unauthorized approvals
     if: |
-      github.event_name == 'pull_request_target' &&
-      github.event.pull_request.user.login == 'dependabot[bot]'
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success'
 
     steps:
-      - name: Wait for CI Checks
-        uses: lewagon/wait-on-check-action@v1.3.4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          # Wait for the main verification workflow
-          check-name: '✅ Ready to Merge'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 20
-          allowed-conclusions: success
-
-      - name: Approve PR
-        uses: hmarr/auto-approve-action@v4
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Add Success Comment
+      - name: Get PR Number and Verify Dependabot
+        id: pr
         uses: actions/github-script@v7
         with:
           script: |
+            // Get the pull requests associated with this workflow run
+            const { data: pullRequests } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.payload.workflow_run.head_sha
+            });
+
+            // Filter for open PRs
+            const openPRs = pullRequests.filter(pr => pr.state === 'open');
+            
+            if (openPRs.length === 0) {
+              console.log('No open PRs found for this commit');
+              return;
+            }
+
+            const pr = openPRs[0];
+            console.log(`Found PR #${pr.number}: ${pr.title}`);
+            console.log(`PR author: ${pr.user.login}`);
+
+            // Verify this is a Dependabot PR
+            if (pr.user.login !== 'dependabot[bot]') {
+              console.log('Not a Dependabot PR, skipping approval');
+              return;
+            }
+
+            console.log('✅ Verified Dependabot PR');
+            core.setOutput('pr_number', pr.number);
+            core.setOutput('is_dependabot', 'true');
+
+      - name: Approve PR
+        if: steps.pr.outputs.is_dependabot == 'true'
+        uses: hmarr/auto-approve-action@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ steps.pr.outputs.pr_number }}
+
+      - name: Add Success Comment
+        if: steps.pr.outputs.is_dependabot == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ steps.pr.outputs.pr_number }};
+            
             const body = [
               '✅ **Auto-approved by Dependabot workflow**',
               '',
@@ -115,9 +146,9 @@ jobs:
               'Review the changes and merge when ready.'
             ].join('\n');
 
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
+            await github.rest.issues.createComment({
+              issue_number: prNumber,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body
-            })
+            });
