@@ -4,7 +4,7 @@
  * Following SRP - single responsibility: file classification
  */
 
-import { basename, extname } from 'node:path';
+import { basename, extname, resolve } from 'node:path';
 import { stat } from 'node:fs/promises';
 
 import type {
@@ -34,9 +34,28 @@ export class Classifier implements IClassifier {
     }
 
     try {
-      const extension = extname(filePath).toLowerCase();
-      const filename = basename(filePath);
-      const stats = await stat(filePath);
+      // Security: Resolve to absolute path and validate
+      const resolvedPath = resolve(filePath);
+      const filename = basename(resolvedPath);
+
+      // Reject paths with traversal attempts or invalid characters
+      if (filePath.includes('..') || filename !== basename(filePath)) {
+        return {
+          success: false,
+          error: 'Invalid file path',
+        };
+      }
+
+      const extension = extname(filename).toLowerCase();
+      const stats = await stat(resolvedPath);
+
+      // Defensive: Check if path is a directory
+      if (stats.isDirectory()) {
+        return {
+          success: false,
+          error: 'Invalid input: path is a directory, not a file',
+        };
+      }
 
       // Defensive: Check if path is a directory
       if (stats.isDirectory()) {
@@ -61,7 +80,7 @@ export class Classifier implements IClassifier {
       const rom: ROMFile = {
         id: this.generateROMId(filename),
         filename,
-        path: filePath,
+        path: resolvedPath,
         platform: platform.id,
         extension,
         size: stats.size,
