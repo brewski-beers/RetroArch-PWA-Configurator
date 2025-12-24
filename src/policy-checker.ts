@@ -558,8 +558,14 @@ export class PolicyChecker {
       const hookContent = fs.readFileSync(huskyPath, 'utf-8');
 
       // Check for essential commands
-      const hasFormatCheck = hookContent.includes('format:check');
-      const hasLint = hookContent.includes('lint');
+      const hasFormatCheck =
+        hookContent.includes('format:check') ||
+        hookContent.includes('format:changed') ||
+        hookContent.includes('prettier --check');
+      const hasLint =
+        hookContent.includes('lint') ||
+        hookContent.includes('lint:cache') ||
+        hookContent.includes('lint:fix');
 
       if (!hasFormatCheck || !hasLint) {
         return {

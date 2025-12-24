@@ -24,7 +24,7 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
         cache: 'npm'
-    
+
     - name: Cache node_modules
       id: cache-deps
       uses: actions/cache@v4
@@ -33,7 +33,7 @@ runs:
         key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-deps-
-    
+
     - name: Install dependencies
       if: inputs.install-dependencies == 'true' && steps.cache-deps.outputs.cache-hit != 'true'
       shell: bash

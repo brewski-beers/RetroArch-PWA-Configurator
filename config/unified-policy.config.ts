@@ -4,9 +4,10 @@
  * Single Responsibility: Provide unified access to all policies
  */
 
-import { policyConfig } from './policy.config.js';
 import { testPolicyConfig } from '../tests/config/test-policy.config.js';
 import { e2ePolicyConfig } from '../e2e/config/e2e-policy.config.js';
+
+import { policyConfig } from './policy.config.js';
 import type { BasePolicyRule } from './base-policy.config.js';
 import {
   getEnabledRules,

@@ -7,11 +7,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import express, { type Express } from 'express';
 import request from 'supertest';
+
 import {
   apiRateLimiter,
   strictApiRateLimiter,
   contentRateLimiter,
 } from '../src/middleware/rate-limit.middleware.js';
+
 import { ConfigFactory } from './factories/config.factory.js';
 
 describe('Rate Limiting Middleware (POL-021)', () => {

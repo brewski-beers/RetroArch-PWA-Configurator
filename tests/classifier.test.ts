@@ -5,16 +5,19 @@
  * Covering error paths for POL-002 (Test Coverage)
  */
 
+import { writeFile, mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+
 import { describe, it, expect, beforeEach } from 'vitest';
+
 import { Classifier } from '../src/pipeline/classifier.js';
+import type { ROMFile } from '../src/interfaces/pipeline.interface.js';
+
 import {
   PlatformConfigFactory,
   ROMFileFactory,
 } from './factories/pipeline.factory.js';
-import type { ROMFile } from '../src/interfaces/pipeline.interface.js';
-import { writeFile, mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
-import { tmpdir } from 'node:os';
 
 describe('Classifier', () => {
   let classifier: Classifier;

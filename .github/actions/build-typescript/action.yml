@@ -23,16 +23,16 @@ runs:
         key: ${{ runner.os }}-build-${{ hashFiles('src/**', 'config/**', 'tsconfig.json', 'package.json') }}
         restore-keys: |
           ${{ runner.os }}-build-
-    
+
     - name: Run Type Check
       shell: bash
       run: npm run type-check
-    
+
     - name: Build TypeScript
       if: steps.cache-build.outputs.cache-hit != 'true'
       shell: bash
       run: npm run build
-    
+
     - name: Upload build artifacts
       if: inputs.upload-artifacts == 'true'
       uses: actions/upload-artifact@v4

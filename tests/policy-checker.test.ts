@@ -3,9 +3,12 @@
  * Tests policy validation logic following SRP
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { PolicyChecker } from '../src/policy-checker.js';
 import fs from 'node:fs';
+
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+import { PolicyChecker } from '../src/policy-checker.js';
+
 import { ConfigFactory } from './factories/config.factory.js';
 
 describe('PolicyChecker', () => {

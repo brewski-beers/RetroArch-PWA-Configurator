@@ -1,21 +1,5 @@
-# Fast-fail format and lint checks before commit
-echo "� Checking YAGNI principle compliance..."
-npm run yagni:check || {
-  echo "❌ YAGNI check failed! New abstractions need justification."
-  exit 1
-}
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/husky.sh"
 
-echo "�🎨 Checking code formatting with Prettier..."
-npm run format:check || {
-  echo "❌ Formatting check failed! Run 'npm run format' to fix."
-  exit 1
-}
-
-echo "🔍 Checking code quality with ESLint..."
-npm run lint || {
-  echo "❌ Linting failed! Run 'npm run lint:fix' to auto-fix issues."
-  exit 1
-}
-
-echo "✅ Pre-commit checks passed!"
+npm run prebuild
 

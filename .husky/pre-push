@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Full verification before pushing (POL-002)
+echo "🚦 Running full CI verification before push..."
+npm run ci:verify || {
+  echo "❌ ci:verify failed. Fix issues before pushing."
+  exit 1
+}
+
+echo "✅ Ready to push: all checks passed"

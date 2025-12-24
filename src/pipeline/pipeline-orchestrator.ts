@@ -4,6 +4,8 @@
  * Following DIP (Dependency Inversion Principle) - depends on abstractions
  */
 
+import { join } from 'node:path';
+
 import type {
   IClassifier,
   IValidator,
@@ -14,7 +16,6 @@ import type {
 } from '../interfaces/pipeline.interface.js';
 import type { PlatformConfig } from '../interfaces/platform-config.interface.js';
 import type { UserConfig } from '../interfaces/user-config.interface.js';
-import { join } from 'node:path';
 
 export interface PipelineResult {
   success: boolean;

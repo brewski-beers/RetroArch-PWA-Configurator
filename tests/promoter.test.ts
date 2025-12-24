@@ -3,10 +3,6 @@
  * Covers happy paths and defensive error handling (TEST-007)
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Promoter } from '../src/pipeline/promoter.js';
-import { PlatformConfigFactory } from './factories/pipeline.factory.js';
-import type { ROMFile } from '../src/interfaces/pipeline.interface.js';
 import {
   mkdir,
   writeFile,
@@ -16,6 +12,13 @@ import {
 } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+
+import { Promoter } from '../src/pipeline/promoter.js';
+import type { ROMFile } from '../src/interfaces/pipeline.interface.js';
+
+import { PlatformConfigFactory } from './factories/pipeline.factory.js';
 
 describe('Promoter', () => {
   let promoter: Promoter;

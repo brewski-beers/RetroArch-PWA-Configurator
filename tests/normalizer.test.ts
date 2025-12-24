@@ -6,9 +6,11 @@
  */
 
 import { describe, it, expect } from 'vitest';
+
 import { Normalizer } from '../src/pipeline/normalizer.js';
-import { PlatformConfigFactory } from './factories/pipeline.factory.js';
 import type { ROMFile } from '../src/interfaces/pipeline.interface.js';
+
+import { PlatformConfigFactory } from './factories/pipeline.factory.js';
 
 const baseRom: ROMFile = {
   id: 'rom-normalizer-1',

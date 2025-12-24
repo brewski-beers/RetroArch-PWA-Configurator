@@ -5,16 +5,19 @@
  * Covering error paths for POL-002 (Test Coverage)
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Archiver } from '../src/pipeline/archiver.js';
-import { PlatformConfigFactory } from './factories/pipeline.factory.js';
 import { writeFile, mkdir, rm, chmod } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+
+import { Archiver } from '../src/pipeline/archiver.js';
 import type {
   ROMFile,
   ManifestEntry,
 } from '../src/interfaces/pipeline.interface.js';
+
+import { PlatformConfigFactory } from './factories/pipeline.factory.js';
 
 describe('Archiver', () => {
   let archiver: Archiver;

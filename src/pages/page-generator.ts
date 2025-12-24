@@ -5,6 +5,7 @@
  */
 
 import escapeHtml from 'escape-html';
+
 import {
   pagesConfig,
   type PageConfig,

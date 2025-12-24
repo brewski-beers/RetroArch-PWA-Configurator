@@ -4,11 +4,13 @@
  * Handles missing files gracefully with defaults
  */
 
-import type { UserConfig } from '../interfaces/user-config.interface.js';
-import { ConfigValidator } from './config-validator.js';
-import { getRecommendedTemplate } from './config-templates.js';
 import { readFile, writeFile, mkdir } from 'fs/promises';
 import { dirname } from 'path';
+
+import type { UserConfig } from '../interfaces/user-config.interface.js';
+
+import { ConfigValidator } from './config-validator.js';
+import { getRecommendedTemplate } from './config-templates.js';
 const JSON_INDENT = 2;
 
 /**

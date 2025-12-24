@@ -46,6 +46,18 @@ _Always one atomic action per prompt. No multipart or “and also” requests._
 
 ---
 
+## 🧹 Formatting & Lint Policy (POL-005, POL-019, POL-002)
+
+- **Local:** VS Code auto-formats on save + ESLint auto-fixes on save (see `.vscode/settings.json`). No guard scripts needed.
+- **Dev workflow:** Just run `npm run dev`, `npm run test`, `npm run serve`. Format/lint happens automatically via editor.
+- **Pre-Commit (Husky):** Formats changed files + runs cached lint to catch issues before commit.
+- **Pre-Push (Husky):** Runs full `ci:verify` locally before allowing push.
+- **CI:** `npm run ci:verify` enforces zero errors on full repo (no cache) before merge.
+- **Prod builds:** `npm run prebuild` (format + lint:fix) then `npm run build` ensures clean artifacts.
+- Copilot must suggest plain scripts (`npm run dev`, `npm run test`) not guard scripts. Format/lint are handled by IDE and Husky.
+
+---
+
 ## 🔄 Continuous Improvement
 
 - **Review these instructions after project policy/config changes or upon unusual Copilot billing.**
