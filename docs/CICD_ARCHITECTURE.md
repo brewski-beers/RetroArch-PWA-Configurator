@@ -638,10 +638,11 @@ gh run view <run-id> --log
 
 ### Short-Term (Q1 2024)
 
-1. **Auto-merge Dependabot PRs**:
-   - Configure GitHub auto-merge for patch/minor updates
-   - Require tests pass first
+1. **Auto-merge Dependabot PRs** ✅:
+   - Fully automated: approval + merge for all Dependabot updates
+   - Requires tests pass first
    - Saves ~30 min/week reviewing trivial updates
+   - Implemented via `auto-approve-dependabot.yml` workflow
 
 2. **Caching Enhancements**:
    - Cache Playwright browsers (saves ~2 min per E2E run)
@@ -673,8 +674,9 @@ gh run view <run-id> --log
    - Better cache hit rates
 
 2. **Custom Dependabot Rules**:
-   - Auto-merge patch updates automatically
-   - Skip major updates for stable dependencies
+   - All updates auto-merged automatically after CI passes
+   - Consider adding filters for major version updates (future enhancement)
+   - Monitor for breaking changes in major updates
 
 3. **Advanced CodeQL Queries**:
    - Custom security rules for RetroArch-specific logic

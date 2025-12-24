@@ -287,8 +287,9 @@ export const policyConfig: PolicyConfig = {
       id: 'POL-014',
       name: 'Automated Dependency Updates',
       description:
-        'Dependabot configured for automated security updates. Auto-merge minor/patch updates. ' +
-        'Weekly dependency review. Renovate or Dependabot PR auto-labeling enabled.',
+        'Dependabot configured for automated security updates. Fully automated approval and merge ' +
+        'for all Dependabot PRs that pass CI checks. Weekly dependency review. ' +
+        'Auto-labeling enabled. Implemented via auto-approve-dependabot.yml workflow.',
       enabled: true,
       severity: 'high',
       category: 'application',
