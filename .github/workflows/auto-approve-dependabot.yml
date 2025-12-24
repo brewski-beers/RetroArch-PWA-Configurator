@@ -87,7 +87,7 @@ jobs:
 
     steps:
       - name: Wait for CI Checks
-        uses: lewagon/wait-on-check-action@v1.3.4
+        uses: lewagon/wait-on-check-action@v1.4.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           # Wait for the main verification workflow
