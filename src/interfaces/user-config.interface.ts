@@ -85,3 +85,39 @@ export interface ConfigTemplate {
   /** Generate config from this template */
   generate: (basePath: string) => UserConfig;
 }
+
+/**
+ * Simplified Configuration for Batch Processing
+ * Zero-config approach with single base path
+ * Follows RetroArch-native directory structure
+ */
+export interface SimpleConfig {
+  /** Configuration version (for migrations) */
+  version: string;
+  /** Base path for RetroArch (e.g., /home/user/RetroArch) */
+  basePath: string;
+}
+
+/**
+ * Auto-generated RetroArch paths from SimpleConfig
+ */
+export interface RetroArchPaths {
+  /** Base RetroArch directory */
+  retroarch: string;
+  /** Downloads directory (ROMs organized by platform name) */
+  downloads: string;
+  /** Playlists directory (.lpl files) */
+  playlists: string;
+  /** System directory (BIOS files) */
+  system: string;
+  /** Saves directory (save files) */
+  saves: string;
+  /** States directory (save states) */
+  states: string;
+  /** Thumbnails directory (artwork) */
+  thumbnails: string;
+  /** Hidden archive directory (tracking with hard links) */
+  archive: string;
+  /** Manifests directory (within archive) */
+  manifests: string;
+}
