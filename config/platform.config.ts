@@ -50,25 +50,25 @@ export const platformConfig: PlatformConfig = {
   platforms: [
     {
       id: 'nes',
-      name: 'Nintendo Entertainment System',
+      name: 'Nintendo - Nintendo Entertainment System',
       extensions: ['.nes'],
       requiresBIOS: false,
     },
     {
       id: 'snes',
-      name: 'Super Nintendo Entertainment System',
+      name: 'Nintendo - Super Nintendo Entertainment System',
       extensions: ['.sfc', '.smc'],
       requiresBIOS: false,
     },
     {
       id: 'genesis',
-      name: 'Sega Genesis / Mega Drive',
+      name: 'Sega - Mega Drive - Genesis',
       extensions: ['.md', '.gen', '.bin'],
       requiresBIOS: false,
     },
     {
       id: 'psx',
-      name: 'Sony PlayStation',
+      name: 'Sony - PlayStation',
       extensions: ['.cue', '.bin', '.chd'],
       requiresBIOS: true,
       biosFiles: ['scph5500.bin', 'scph5501.bin', 'scph5502.bin'],
@@ -76,7 +76,7 @@ export const platformConfig: PlatformConfig = {
     },
     {
       id: 'n64',
-      name: 'Nintendo 64',
+      name: 'Nintendo - Nintendo 64',
       extensions: ['.n64', '.z64', '.v64'],
       requiresBIOS: false,
     },
