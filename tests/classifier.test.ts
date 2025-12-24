@@ -88,7 +88,7 @@ describe('Classifier', () => {
       expect(result.data?.metadata).toBeDefined();
       expect(result.data?.metadata?.['classifiedAt']).toBeDefined();
       expect(result.data?.metadata?.['platformName']).toBe(
-        'Nintendo Entertainment System'
+        'Nintendo - Nintendo Entertainment System'
       );
     });
 
