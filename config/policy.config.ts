@@ -416,3 +416,30 @@ export const policyConfig: PolicyConfig = {
     requirePaywalls: false, // Not yet implemented
   },
 };
+
+// POL-022: Batch Upload Configuration
+// Exposed as typed config for validator/processor to satisfy POL-005 (ESLint type safety)
+export const batchUploadConfig = {
+  maxBatchSize: 100,
+  maxFileSize: 50 * 1024 * 1024,
+  processingStrategy: 'serial' as const,
+  errorHandling: 'continueOnError' as const,
+  allowedExtensions: [
+    '.zip',
+    '.nes',
+    '.snes',
+    '.sfc',
+    '.gba',
+    '.gb',
+    '.gbc',
+    '.n64',
+    '.md',
+    '.gen',
+    '.sms',
+    '.gg',
+    '.pce',
+  ],
+  rateLimitPerMinute: 10,
+};
+
+export type BatchUploadConfig = typeof batchUploadConfig;

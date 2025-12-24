@@ -4,7 +4,7 @@
  * Following SRP - single responsibility: batch validation
  */
 
-import type { batchUploadConfig } from '../../config/policy.config.js';
+import type { BatchUploadConfig } from '../../config/policy.config.js';
 
 /**
  * File input structure for validation
@@ -30,7 +30,7 @@ export interface ValidationResult {
  */
 export function validateBatch(
   files: FileInput[],
-  policy: typeof batchUploadConfig
+  policy: BatchUploadConfig
 ): ValidationResult {
   // Validate batch size
   if (files.length > policy.maxBatchSize) {
@@ -51,7 +51,8 @@ export function validateBatch(
     }
 
     // Validate file extension
-    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    const lastDot = file.name.lastIndexOf('.');
+    const ext = lastDot >= 0 ? file.name.substring(lastDot).toLowerCase() : '';
 
     if (!policy.allowedExtensions.includes(ext)) {
       return {
