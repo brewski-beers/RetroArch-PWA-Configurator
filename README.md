@@ -19,40 +19,43 @@
 
 ## Quick Start
 
-### 1. Install Dependencies
+### Zero-Config Operation (Recommended)
+
+Just run the ingest command - it auto-detects your RetroArch directory:
 
 ```bash
 npm install
+npm run ingest /path/to/your/roms/
 ```
 
-### 2. Setup (One Question)
+That's it! The tool will:
+1. Auto-detect your RetroArch folder (or use `~/RetroArch` as default)
+2. Process all ROM files in parallel
+3. Create playlists and organize by platform
+4. Be ready for RetroArch immediately
+
+### Custom Path (Optional)
+
+If you need a specific RetroArch location:
 
 ```bash
-npm run setup
-# → Where is your RetroArch folder? /home/user/RetroArch
+npm run setup  # One-time: specify custom path
+npm run ingest /path/to/roms/
 ```
 
-### 3. Batch Ingest ROMs
+### RetroArch Configuration
 
-```bash
-npm run ingest /path/to/rom-collection/
-# → Processing 8,247 files...
-# → ████████████████████ 100% - 47s
-# → ✅ 8,247 ROMs ready!
-```
-
-### 4. Syncthing Integration (Optional)
-
-- Add `/home/user/RetroArch` to Syncthing
-- Share with your devices
-- Done! All devices stay in sync automatically
-
-### 5. RetroArch Configuration
+Point RetroArch to your directory (auto-detected path shown during ingestion):
 
 In RetroArch → Settings → Directory:
-
-- Set **Base Directory** to `/home/user/RetroArch`
+- Set **Base Directory** to your RetroArch path (e.g., `~/RetroArch`)
 - RetroArch automatically finds everything!
+
+### Syncthing Integration (Optional)
+
+- Add your RetroArch directory to Syncthing
+- Share with your devices  
+- All devices stay in sync automatically
 
 ## Performance
 

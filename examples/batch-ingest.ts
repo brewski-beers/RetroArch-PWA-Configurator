@@ -12,7 +12,10 @@ import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 
 import { BatchProcessor } from '../src/batch-processor.js';
-import { generateRetroArchPaths } from '../src/config/simple-config.js';
+import {
+  generateRetroArchPaths,
+  detectRetroArchPath,
+} from '../src/config/simple-config.js';
 import { platformConfig } from '../config/platform.config.js';
 import type { SimpleConfig } from '../src/interfaces/user-config.interface.js';
 
@@ -56,49 +59,59 @@ async function loadConfig(): Promise<SimpleConfig | null> {
 async function main(): Promise<void> {
   logSection('RetroArch PWA Configurator - Batch ROM Ingestion');
 
-  // Load configuration
+  // Try to load configuration, fall back to auto-detection
   log('📋 Loading configuration...', colors.cyan);
-  const config = await loadConfig();
+  let config = await loadConfig();
+  let basePath: string;
 
   if (!config) {
-    log('❌ Configuration not found', colors.red);
-    log('💡 Run: npm run setup', colors.yellow);
-    log('   Then try again.', colors.reset);
-    process.exit(1);
+    log('⚠️  No configuration found, using auto-detection...', colors.yellow);
+    
+    const detectedPath = detectRetroArchPath();
+    if (detectedPath) {
+      basePath = detectedPath;
+      log(`✅ Auto-detected RetroArch: ${basePath}`, colors.green);
+    } else {
+      log('❌ Could not auto-detect RetroArch directory', colors.red);
+      log('💡 Run: npm run setup', colors.yellow);
+      log('   Or manually specify a path in user-config.json', colors.reset);
+      process.exit(1);
+    }
+  } else {
+    basePath = config.basePath;
+    log('✅ Configuration loaded', colors.green);
+    log(`   Base Path: ${basePath}`, colors.reset);
   }
-
-  log('✅ Configuration loaded', colors.green);
-  log(`   Base Path: ${config.basePath}`, colors.reset);
 
   // Parse command line arguments
   const args = process.argv.slice(2);
   if (args.length === 0) {
-    log('\n❌ Error: No directory path provided', colors.red);
+    log('\n❌ Error: No path provided', colors.red);
     log('\nUsage:', colors.yellow);
-    log('  npm run ingest /path/to/rom-collection/', colors.reset);
+    log('  npm run ingest /path/to/rom-file-or-directory/', colors.reset);
     log(
-      '  npx tsx examples/batch-ingest.ts /path/to/rom-collection/',
+      '  npx tsx examples/batch-ingest.ts /path/to/rom-file-or-directory/',
       colors.reset
     );
     log('\nExamples:', colors.cyan);
     log('  npm run ingest ~/ROMs/', colors.reset);
-    log('  npm run ingest /mnt/usb/games/', colors.reset);
+    log('  npm run ingest /mnt/usb/games/game.nes', colors.reset);
     log('  npm run ingest "C:\\Users\\user\\ROMs"', colors.reset);
     process.exit(1);
   }
 
   const inputPath = resolve(args[0] ?? '');
 
-  // Validate directory exists
+  // Validate path exists
   if (!existsSync(inputPath)) {
-    log(`\n❌ Error: Directory not found: ${inputPath}`, colors.red);
+    log(`\n❌ Error: Path not found: ${inputPath}`, colors.red);
     process.exit(1);
   }
 
-  log(`\n📁 Input Directory: ${inputPath}`, colors.cyan);
+  log(`\n📁 Input: ${inputPath}`, colors.cyan);
 
   // Generate RetroArch paths
-  const paths = generateRetroArchPaths(config.basePath);
+  const paths = generateRetroArchPaths(basePath);
 
   // Initialize batch processor
   logSection('Initializing Batch Processor');
@@ -184,10 +197,10 @@ async function main(): Promise<void> {
     logSection('Next Steps');
     log('1. Configure RetroArch:', colors.reset);
     log('   In RetroArch → Settings → Directory:', colors.reset);
-    log(`   Set Base Directory to: ${config.basePath}`, colors.reset);
+    log(`   Set Base Directory to: ${basePath}`, colors.reset);
     log('', colors.reset);
     log('2. Optional: Setup Syncthing:', colors.reset);
-    log(`   Add ${config.basePath} to Syncthing`, colors.reset);
+    log(`   Add ${basePath} to Syncthing`, colors.reset);
     log('   Share with your devices for automatic sync', colors.reset);
     log('', colors.reset);
     log('3. Launch RetroArch:', colors.reset);

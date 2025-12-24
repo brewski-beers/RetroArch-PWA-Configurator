@@ -65,7 +65,8 @@ export class BatchProcessor {
   }
 
   /**
-   * Process entire directory recursively
+   * Process files or directory recursively
+   * Handles both single file paths and directory paths
    */
   async processDirectory(inputPath: string): Promise<BatchResult> {
     const startTime = Date.now();
@@ -73,12 +74,12 @@ export class BatchProcessor {
     const errors: Array<{ file: string; error: string }> = [];
 
     // eslint-disable-next-line no-console
-    console.log('\n🔍 Scanning directory...');
+    console.log('\n🔍 Scanning for ROM files...');
     const allFiles = await this.scanDirectory(inputPath);
     const total = allFiles.length;
 
     // eslint-disable-next-line no-console
-    console.log(`📊 Found ${total} files\n`);
+    console.log(`📊 Found ${total} file${total === 1 ? '' : 's'}\n`);
 
     if (total === 0) {
       return {
@@ -162,15 +163,29 @@ export class BatchProcessor {
 
   /**
    * Recursively scan directory for ROM files
+   * Also handles single file paths
    */
-  private async scanDirectory(dir: string): Promise<string[]> {
+  private async scanDirectory(path: string): Promise<string[]> {
     const files: string[] = [];
 
     try {
-      const entries = await readdir(dir, { withFileTypes: true });
+      // Check if path is a file
+      const pathStat = await stat(path);
+      
+      if (pathStat.isFile()) {
+        // Single file - check if it's a recognized ROM file
+        const ext = extname(path).toLowerCase();
+        if (this.platformMap.has(ext)) {
+          files.push(path);
+        }
+        return files;
+      }
+
+      // Path is a directory - scan recursively
+      const entries = await readdir(path, { withFileTypes: true });
 
       for (const entry of entries) {
-        const fullPath = join(dir, entry.name);
+        const fullPath = join(path, entry.name);
 
         if (entry.isDirectory()) {
           // Recurse into subdirectories
@@ -188,7 +203,7 @@ export class BatchProcessor {
       // Continue on error (e.g., permission denied)
       // eslint-disable-next-line no-console
       console.warn(
-        `Warning: Could not scan ${dir}: ${error instanceof Error ? error.message : String(error)}`
+        `Warning: Could not scan ${path}: ${error instanceof Error ? error.message : String(error)}`
       );
     }
 
