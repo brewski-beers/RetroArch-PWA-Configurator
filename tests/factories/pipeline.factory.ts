@@ -206,7 +206,7 @@ export class PlatformDefinitionFactory {
   static nes(): PlatformDefinition {
     return {
       id: 'nes',
-      name: 'Nintendo Entertainment System',
+      name: 'Nintendo - Nintendo Entertainment System',
       extensions: ['.nes'],
       requiresBIOS: false,
     };
@@ -218,7 +218,7 @@ export class PlatformDefinitionFactory {
   static psx(): PlatformDefinition {
     return {
       id: 'psx',
-      name: 'Sony PlayStation',
+      name: 'Sony - PlayStation',
       extensions: ['.cue', '.bin', '.chd'],
       requiresBIOS: true,
       biosFiles: ['scph5500.bin', 'scph5501.bin', 'scph5502.bin'],
@@ -232,7 +232,7 @@ export class PlatformDefinitionFactory {
   static snes(): PlatformDefinition {
     return {
       id: 'snes',
-      name: 'Super Nintendo Entertainment System',
+      name: 'Nintendo - Super Nintendo Entertainment System',
       extensions: ['.sfc', '.smc'],
       requiresBIOS: false,
     };

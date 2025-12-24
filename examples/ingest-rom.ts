@@ -3,6 +3,11 @@
  * ROM Ingestion Demo CLI
  * Demonstrates the complete RetroArch Platform pipeline
  * Usage: npx tsx examples/ingest-rom.ts <path-to-rom>
+ *
+ * ⚠️ DEPRECATED: For batch processing multiple files, use batch-ingest.ts instead:
+ *    npm run ingest /path/to/rom-collection/
+ *
+ * This tool is kept for backward compatibility and single-file processing.
  */
 
 import { resolve } from 'node:path';
