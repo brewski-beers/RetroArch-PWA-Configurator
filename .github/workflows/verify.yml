@@ -7,6 +7,14 @@ on:
     # This is required for branch protection, especially for Dependabot PRs
     # that may only update files like package.json or .github/workflows/*.yml
 
+# Permissions required for status checks and branch protection
+# CRITICAL: These permissions are needed for Dependabot PRs to work correctly
+# Without explicit permissions, GitHub uses restrictive defaults for fork PRs
+permissions:
+  contents: read
+  checks: write # Required to report status checks
+  statuses: write # Required to report commit status
+
 # Cancel in-progress runs for the same PR
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
