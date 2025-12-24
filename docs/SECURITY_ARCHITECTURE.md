@@ -76,6 +76,7 @@ npm run policy:check    # All 17 policies
 6. No manual intervention required
 
 **Workflow sequence**:
+
 ```
 Dependabot PR → CI Checks Pass → Auto-Approve → Auto-Merge → Done
 ```
@@ -91,6 +92,7 @@ on:
 ```
 
 **Security safeguards**:
+
 - Only runs for `dependabot[bot]` PRs (author verification)
 - Requires `workflow_run.conclusion == 'success'`
 - All CI checks must pass before merge
