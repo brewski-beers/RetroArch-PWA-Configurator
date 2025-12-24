@@ -70,6 +70,16 @@ export class PageConfigFactory {
             id: `footer-${i}`,
             testId: `test-footer-${i}`,
           });
+        case 'form':
+          return ComponentFactory.createForm({
+            id: `form-${i}`,
+            testId: `test-form-${i}`,
+          });
+        default:
+          return ComponentFactory.createContent({
+            id: `content-${i}`,
+            testId: `test-content-${i}`,
+          });
       }
     });
 
@@ -113,6 +123,36 @@ export class ComponentFactory {
       id: 'test-footer',
       testId: 'test-page-footer',
       content: 'Test Footer',
+      ...overrides,
+    };
+  }
+
+  /**
+   * Create a form component
+   */
+  static createForm(overrides: Partial<PageComponent> = {}): PageComponent {
+    return {
+      type: 'form',
+      id: 'test-form',
+      testId: 'test-page-form',
+      content: '',
+      formConfig: {
+        action: '/api/test',
+        method: 'POST',
+        fields: [
+          {
+            type: 'file',
+            name: 'testFile',
+            id: 'test-file-input',
+            testId: 'test-file-input',
+            label: 'Test File',
+          },
+        ],
+        submitButton: {
+          text: 'Submit',
+          testId: 'test-submit-button',
+        },
+      },
       ...overrides,
     };
   }
