@@ -31,7 +31,7 @@ on:
 # Minimal permissions for security (principle of least privilege)
 permissions:
   pull-requests: write
-  contents: write  # Needed for rebasing PR branches
+  contents: write # Needed for rebasing PR branches
 
 jobs:
   # Keep Dependabot PRs up-to-date with base branch

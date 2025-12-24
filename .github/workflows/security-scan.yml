@@ -87,10 +87,10 @@ jobs:
         run: |
           echo "## 📋 License Compliance Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Check for forbidden licenses
           FORBIDDEN=$(license-checker --onlyunknown --exclude "MIT,Apache-2.0,BSD,BSD-2-Clause,BSD-3-Clause,ISC,0BSD,CC0-1.0,Unlicense,WTFPL" 2>&1 || true)
-          
+
           if [ -n "$FORBIDDEN" ]; then
             echo "⚠️ **Potential license issues detected:**" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
@@ -99,7 +99,7 @@ jobs:
           else
             echo "✅ All dependencies use OSI-approved licenses" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           license-checker --summary >> $GITHUB_STEP_SUMMARY || true
 
@@ -115,7 +115,7 @@ jobs:
         run: |
           echo "## 🔒 Supply Chain Security" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ ! -f "package-lock.json" ]; then
             echo "❌ package-lock.json not found!" >> $GITHUB_STEP_SUMMARY
             exit 1
@@ -123,7 +123,7 @@ jobs:
 
           # Verify lockfile version (should be v2 or v3)
           LOCKFILE_VERSION=$(jq -r '.lockfileVersion' package-lock.json)
-          
+
           # Use arithmetic expansion for safer numeric comparison
           if (( LOCKFILE_VERSION < 2 )); then
             echo "❌ package-lock.json uses old format (v$LOCKFILE_VERSION)" >> $GITHUB_STEP_SUMMARY
@@ -166,4 +166,3 @@ jobs:
           echo "- ✅ POL-017: Supply Chain Security" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "💡 **Tip:** Dependabot PRs auto-created weekly for updates" >> $GITHUB_STEP_SUMMARY
-

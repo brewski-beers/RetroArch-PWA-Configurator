@@ -5,9 +5,11 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
+
 import { ConfigValidator } from '../src/config/config-validator.js';
 import { coLocatedTemplate } from '../src/config/config-templates.js';
 import type { UserConfig } from '../src/interfaces/user-config.interface.js';
+
 import { ConfigFactory } from './factories/config.factory.js';
 
 describe('ConfigValidator', () => {

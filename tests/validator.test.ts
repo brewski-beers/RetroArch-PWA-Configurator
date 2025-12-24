@@ -5,17 +5,20 @@
  * Following TEST-001 (Use test factories)
  */
 
+import { writeFile, mkdir, rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { createHash } from 'node:crypto';
+
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+
 import { Validator } from '../src/pipeline/validator.js';
+
 import {
   PlatformConfigFactory,
   ROMFileFactory,
   PlatformDefinitionFactory,
 } from './factories/pipeline.factory.js';
-import { writeFile, mkdir, rm } from 'node:fs/promises';
-import { join } from 'node:path';
-import { tmpdir } from 'node:os';
-import { createHash } from 'node:crypto';
 
 describe('Validator', () => {
   let validator: Validator;

@@ -6,6 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
+
 import {
   coLocatedTemplate,
   distributedTemplate,
@@ -13,6 +14,7 @@ import {
   getTemplate,
   getRecommendedTemplate,
 } from '../src/config/config-templates.js';
+
 import { ConfigFactory } from './factories/config.factory.js';
 
 describe('ConfigTemplates', () => {

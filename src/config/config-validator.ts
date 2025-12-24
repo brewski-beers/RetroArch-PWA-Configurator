@@ -4,11 +4,12 @@
  * Checks for path conflicts, required fields, and consistency
  */
 
+import { isAbsolute, normalize } from 'path';
+
 import type {
   UserConfig,
   DirectoryPath,
 } from '../interfaces/user-config.interface.js';
-import { isAbsolute, normalize } from 'path';
 
 /**
  * Validation result with detailed errors and warnings

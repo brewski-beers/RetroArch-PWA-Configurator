@@ -6,6 +6,7 @@
  */
 
 import { test, expect } from '@playwright/test';
+
 import { pagesConfig } from '../../config/pages.config.js';
 import { e2ePolicyConfig } from '../config/e2e-policy.config.js';
 import { policyConfig } from '../../config/policy.config.js';

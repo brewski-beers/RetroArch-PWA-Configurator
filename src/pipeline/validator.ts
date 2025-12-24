@@ -4,18 +4,19 @@
  * Following SRP - single responsibility: validation
  */
 
+import { createHash } from 'node:crypto';
+import { createReadStream, access } from 'node:fs';
+import { readdir, readFile } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { dirname, basename, extname, join } from 'node:path';
+
+import type { PlatformConfig } from '../interfaces/platform-config.interface.js';
 import type {
   IValidator,
   PhaseResult,
   ROMFile,
   ManifestEntry,
 } from '../interfaces/pipeline.interface.js';
-import type { PlatformConfig } from '../interfaces/platform-config.interface.js';
-import { createHash } from 'node:crypto';
-import { createReadStream, access } from 'node:fs';
-import { readdir, readFile } from 'node:fs/promises';
-import { constants } from 'node:fs';
-import { dirname, basename, extname, join } from 'node:path';
 
 export class Validator implements IValidator {
   private readonly config: PlatformConfig;

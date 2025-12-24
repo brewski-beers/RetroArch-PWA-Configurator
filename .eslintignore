@@ -2,6 +2,13 @@
 dist/
 node_modules/
 coverage/
+\.cache/
+\.tmp/
+\.husky/
+playwright-report/
+test-results/
+package-lock.json
+*.log
 
 # Test outputs
 playwright-report/
