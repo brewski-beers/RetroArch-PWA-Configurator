@@ -78,7 +78,8 @@ Ensure the following is configured:
 3. **"✅ Ready to Merge" status** → Reports success/failure
 4. **`auto-approve-dependabot.yml` waits** → For "✅ Ready to Merge" status
 5. **Auto-approval** → If all checks pass, PR is approved
-6. **Manual merge** → Still required (can be automated later)
+6. **Auto-merge** → PR is automatically merged with squash method
+7. **Success comment** → Added to the closed PR
 
 ## Trade-offs
 
@@ -191,7 +192,7 @@ Use GitHub Actions expressions to conditionally skip path checks for Dependabot.
 1. ✅ **Merge this PR** to apply the fix
 2. 🔍 **Monitor Dependabot PRs** to verify the fix works
 3. 📝 **Update branch protection rules** if needed to match required status checks
-4. 🚀 **Consider enabling auto-merge** for Dependabot PRs (optional enhancement)
+4. ✅ **Auto-merge enabled** for Dependabot PRs - fully automated dependency updates
 
 ## Questions?
 
