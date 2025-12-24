@@ -1209,6 +1209,100 @@ export class PolicyChecker {
   }
 
   /**
+   * POL-022: Batch ROM Upload Policy
+   * Ensures batch upload endpoints, queue/processor, and config are present
+   */
+  checkBatchUploadPolicy(): { passed: boolean; message: string } {
+    try {
+      const serverPath = path.join(process.cwd(), 'src', 'server.ts');
+      const queuePath = path.join(
+        process.cwd(),
+        'src',
+        'ingestion',
+        'batch-queue.ts'
+      );
+      const processorPath = path.join(
+        process.cwd(),
+        'src',
+        'ingestion',
+        'batch-processor.ts'
+      );
+      const validatorPath = path.join(
+        process.cwd(),
+        'src',
+        'ingestion',
+        'batch-validator.ts'
+      );
+      const policyConfigPath = path.join(
+        process.cwd(),
+        'config',
+        'policy.config.ts'
+      );
+
+      const missing: string[] = [];
+
+      if (!fs.existsSync(serverPath)) missing.push('src/server.ts');
+      if (!fs.existsSync(queuePath))
+        missing.push('src/ingestion/batch-queue.ts');
+      if (!fs.existsSync(processorPath))
+        missing.push('src/ingestion/batch-processor.ts');
+      if (!fs.existsSync(validatorPath))
+        missing.push('src/ingestion/batch-validator.ts');
+      if (!fs.existsSync(policyConfigPath))
+        missing.push('config/policy.config.ts');
+
+      if (missing.length > 0) {
+        return {
+          passed: false,
+          message: `Missing batch upload components: ${missing.join(', ')}`,
+        };
+      }
+
+      const serverContent = fs.readFileSync(serverPath, 'utf-8');
+      const hasUploadEndpoint = serverContent.includes(
+        '/api/roms/batch-upload'
+      );
+      const hasStatusEndpoint = serverContent.includes(
+        '/api/roms/batch-status'
+      );
+      const startsProcessor = serverContent.includes('batchProcessor.start(');
+
+      if (!hasUploadEndpoint || !hasStatusEndpoint || !startsProcessor) {
+        const parts: string[] = [];
+        if (!hasUploadEndpoint) parts.push('POST /api/roms/batch-upload');
+        if (!hasStatusEndpoint) parts.push('GET /api/roms/batch-status');
+        if (!startsProcessor) parts.push('batchProcessor.start()');
+        return {
+          passed: false,
+          message: `Batch upload policy not fully wired: missing ${parts.join(', ')}`,
+        };
+      }
+
+      const policyContent = fs.readFileSync(policyConfigPath, 'utf-8');
+      const hasConfig = policyContent.includes('batchUploadConfig');
+      const mentionsPol = policyContent.includes('POL-022');
+      if (!hasConfig || !mentionsPol) {
+        return {
+          passed: false,
+          message:
+            'batchUploadConfig (POL-022) not defined in policy.config.ts',
+        };
+      }
+
+      return {
+        passed: true,
+        message:
+          'Batch upload policy (POL-022) implemented: endpoints, processor, and config present',
+      };
+    } catch (error) {
+      return {
+        passed: false,
+        message: `Error checking batch upload policy: ${error instanceof Error ? error.message : String(error)}`,
+      };
+    }
+  }
+
+  /**
    * POL-020: Check Policy Test Coverage
    * Ensures every policy has corresponding test coverage
    */
@@ -1528,6 +1622,13 @@ export class PolicyChecker {
     results.push({
       rule: 'POL-021: Rate Limiting',
       ...rateLimitingCheck,
+    });
+
+    // Check POL-022: Batch ROM Upload Policy
+    const batchUploadCheck = this.checkBatchUploadPolicy();
+    results.push({
+      rule: 'POL-022: Batch ROM Upload Policy',
+      ...batchUploadCheck,
     });
 
     const allPassed = results.every((r: { passed: boolean }) => r.passed);

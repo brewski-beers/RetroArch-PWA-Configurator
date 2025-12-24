@@ -64,7 +64,10 @@ export function uploadMiddleware(
           try {
             const files = await parseMultipartData(body, boundary, uploadDir);
             // Attach files to request
-            (req as Request & { files?: UploadedFile[] }).files = files;
+            // Use a distinct property name to avoid collision with multer's Request.files type
+            (
+              req as Request & { uploadedFiles?: UploadedFile[] }
+            ).uploadedFiles = files;
             next();
           } catch (error) {
             const err = error as Error;

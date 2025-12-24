@@ -408,6 +408,29 @@ export const policyConfig: PolicyConfig = {
         blocking: true,
       },
     },
+    {
+      id: 'POL-022',
+      name: 'Batch ROM Upload Policy',
+      description:
+        'Defines requirements and limits for batch ROM file uploads. ' +
+        'Requirements: (1) Maximum batch size of 100 files per request. ' +
+        '(2) Maximum individual file size of 50MB. ' +
+        '(3) Only allow specific ROM file extensions (.zip, .nes, .snes, .gba, .gb, .gbc, .n64, .sfc, .md, .gen, .sms, .gg, .pce). ' +
+        '(4) Serial processing strategy to prevent resource exhaustion. ' +
+        '(5) Continue-on-error handling to process remaining files after failures. ' +
+        '(6) Rate limit of 10 batch uploads per minute per IP. ' +
+        'Prevents DoS via large uploads, ensures platform stability, and provides predictable processing. ' +
+        'Enforcement: Validation middleware rejects non-compliant batch requests with 400 status.',
+      enabled: true,
+      severity: 'high',
+      category: 'application',
+      priority: 4,
+      enforcement: {
+        automated: true,
+        manual: false,
+        blocking: true,
+      },
+    },
   ],
   compliance: {
     requireAuth: false, // Not yet implemented
@@ -415,4 +438,31 @@ export const policyConfig: PolicyConfig = {
     requirePlugins: false, // Not yet implemented
     requirePaywalls: false, // Not yet implemented
   },
+};
+
+/**
+ * Batch Upload Configuration (POL-022)
+ * Centralized config for batch ROM upload limits and behavior
+ */
+export const batchUploadConfig = {
+  maxBatchSize: 100,
+  maxFileSize: 50 * 1024 * 1024, // 50MB per file
+  processingStrategy: 'serial' as const,
+  errorHandling: 'continueOnError' as const,
+  allowedExtensions: [
+    '.zip',
+    '.nes',
+    '.snes',
+    '.sfc',
+    '.gba',
+    '.gb',
+    '.gbc',
+    '.n64',
+    '.md',
+    '.gen',
+    '.sms',
+    '.gg',
+    '.pce',
+  ],
+  rateLimitPerMinute: 10,
 };

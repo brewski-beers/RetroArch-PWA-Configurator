@@ -10,6 +10,7 @@ import path from 'node:path';
 import { promises as fsp } from 'node:fs';
 import cors from 'cors';
 import escapeHtml from 'escape-html';
+import multer from 'multer';
 import { PageGenerator } from './pages/page-generator.js';
 import {
   getCorsConfig,
@@ -33,6 +34,10 @@ import { Archiver } from './pipeline/archiver.js';
 import { Promoter } from './pipeline/promoter.js';
 import { ConfigLoader } from './config/config-loader.js';
 import { platformConfig } from '../config/platform.config.js';
+import { batchUploadConfig } from '../config/policy.config.js';
+import { validateBatch } from './ingestion/batch-validator.js';
+import { batchQueue, type BatchFile } from './ingestion/batch-queue.js';
+import { batchProcessor } from './ingestion/batch-processor.js';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
@@ -203,7 +208,8 @@ export class AppServer {
       uploadMiddleware(uploadDir),
       async (req: Request, res: Response) => {
         try {
-          const files = (req as Request & { files?: UploadedFile[] }).files;
+          const files = (req as Request & { uploadedFiles?: UploadedFile[] })
+            .uploadedFiles;
 
           if (files === undefined || files.length === 0) {
             res.status(BAD_REQUEST_STATUS).json({
@@ -278,6 +284,153 @@ export class AppServer {
         }
       }
     );
+
+    // POST /api/roms/batch-upload - Queue batch ROM upload (POL-022)
+    const batchUploadDir = join(tmpdir(), 'retroarch-batch-uploads');
+
+    // Use provided config or safe defaults (for testing)
+    const batchConfig = batchUploadConfig ?? {
+      maxFileSize: 50 * 1024 * 1024,
+      maxBatchSize: 100,
+      errorHandling: 'continueOnError' as const,
+    };
+
+    const batchUploader = multer({
+      dest: batchUploadDir,
+      limits: {
+        fileSize: batchConfig.maxFileSize,
+        files: batchConfig.maxBatchSize,
+      },
+    });
+
+    this.app.post(
+      '/api/roms/batch-upload',
+      strictApiRateLimiter,
+      batchUploader.array('files', batchConfig.maxBatchSize),
+      (req: Request, res: Response) => {
+        try {
+          const uploadedFiles = (
+            req as Request & { files?: Express.Multer.File[] }
+          ).files;
+
+          if (uploadedFiles === undefined || uploadedFiles.length === 0) {
+            res.status(BAD_REQUEST_STATUS).json({
+              error: 'No files uploaded',
+            });
+            return;
+          }
+
+          // Convert uploaded files to FileInput format for validation
+          const filesToValidate = uploadedFiles.map((f) => ({
+            name: f.originalname,
+            size: f.size,
+          }));
+
+          // Validate batch per POL-022 constraints
+          const validationResult = validateBatch(filesToValidate, batchConfig);
+
+          if (!validationResult.valid) {
+            res.status(BAD_REQUEST_STATUS).json({
+              error: validationResult.error,
+            });
+            return;
+          }
+
+          // Create batch file records for job queue
+          const batchFiles: BatchFile[] = uploadedFiles.map((f) => ({
+            filename: f.originalname,
+            path: f.path,
+            size: f.size,
+          }));
+
+          // Create batch job and queue it
+          const job = batchQueue.createJob(batchFiles);
+
+          res.status(202).json({
+            jobId: job.id,
+            accepted: batchFiles.length,
+            message: 'Batch queued for processing',
+          });
+
+          // Trigger immediate processing to reduce latency (POL-022)
+          void batchProcessor.processQueuedNow();
+        } catch (error) {
+          const err = error as Error;
+          res.status(INTERNAL_SERVER_ERROR_STATUS).json({
+            error: `Batch upload failed: ${err.message}`,
+          });
+        }
+      }
+    );
+
+    // GET /api/roms/batch-status/:jobId - Get batch job status (POL-022)
+    this.app.get(
+      '/api/roms/batch-status/:jobId',
+      (req: Request, res: Response) => {
+        try {
+          const jobId = req.params['jobId'];
+
+          if (jobId === undefined) {
+            res.status(BAD_REQUEST_STATUS).json({
+              error: 'Job ID is required',
+            });
+            return;
+          }
+
+          const job = batchQueue.getJob(jobId);
+
+          if (job === undefined) {
+            res.status(404).json({
+              error: `Job ${jobId} not found`,
+            });
+            return;
+          }
+
+          res.json({
+            jobId: job.id,
+            status: job.status,
+            progress: job.progress,
+            errors: job.errors.length > 0 ? job.errors : undefined,
+            createdAt: job.createdAt,
+            startedAt: job.startedAt,
+            completedAt: job.completedAt,
+          });
+        } catch (error) {
+          const err = error as Error;
+          res.status(INTERNAL_SERVER_ERROR_STATUS).json({
+            error: `Status check failed: ${err.message}`,
+          });
+        }
+      }
+    );
+
+    // Test-only: enqueue a batch job without multipart (non-production only)
+    if (process.env['NODE_ENV'] !== 'production') {
+      this.app.post('/api/roms/test-enqueue', (req: Request, res: Response) => {
+        try {
+          const filenames = (req.body as { files?: string[] }).files ?? [];
+          if (filenames.length === 0) {
+            res.status(BAD_REQUEST_STATUS).json({ error: 'No files provided' });
+            return;
+          }
+          const batchFiles: BatchFile[] = filenames.map((name) => ({
+            filename: name,
+            path: join(tmpdir(), 'retroarch-test', name),
+            size: 1024, // dummy size
+          }));
+          const job = batchQueue.createJob(batchFiles);
+          void batchProcessor.processQueuedNow();
+          res.status(202).json({ jobId: job.id, accepted: batchFiles.length });
+          return;
+        } catch (error) {
+          const err = error as Error;
+          res
+            .status(INTERNAL_SERVER_ERROR_STATUS)
+            .json({ error: `Test enqueue failed: ${err.message}` });
+          return;
+        }
+      });
+    }
   }
 
   /**
@@ -443,11 +596,19 @@ export class AppServer {
   /**
    * Start the Express server
    */
+  /**
+   * Start the Express server and batch processor
+   * POL-022: Starts background batch processor for ROM ingestion
+   */
   start(): Promise<void> {
     return new Promise((resolve) => {
       this.app.listen(this.port, () => {
         // eslint-disable-next-line no-console
         console.log(`Server running at http://localhost:${this.port}/`);
+
+        // Start background batch processor (POL-022)
+        batchProcessor.start();
+
         resolve();
       });
     });
